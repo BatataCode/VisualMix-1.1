@@ -43,7 +43,6 @@ function confirmarExportacao() {
   const nomeProjeto = select.value;
 
   if (!nomeProjeto) {
-    alert("Selecione um projeto para exportar.");
     return;
   }
 
@@ -61,7 +60,6 @@ function exportarProjeto(nomeProjeto) {
   const blocos = blocosPorProjeto[nomeProjeto] || {};
 
   if (!projeto) {
-    alert("Projeto não encontrado.");
     return;
   }
 
@@ -85,7 +83,6 @@ function importarProjeto(arquivo) {
       const dados = JSON.parse(e.target.result);
 
       if (!dados.projeto?.nome) {
-        alert("Arquivo inválido.");
         return;
       }
 
@@ -108,10 +105,8 @@ function importarProjeto(arquivo) {
       localStorage.setItem("objetosPorProjeto", JSON.stringify(objetosPorProjeto));
       localStorage.setItem("blocosPorProjeto", JSON.stringify(blocosPorProjeto));
 
-      alert(`Projeto "${nomeFinal}" importado com sucesso!`);
       location.reload();
     } catch (err) {
-      alert("Erro ao importar projeto.");
       console.error(err);
     }
   };
