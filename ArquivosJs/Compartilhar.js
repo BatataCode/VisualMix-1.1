@@ -65,6 +65,10 @@ function exportarProjeto(nomeProjeto) {
 
   const pacote = { projeto, objetos, blocos };
 
+  if (window.AndroidInterface && AndroidInterface.salvarJsonNaPastaDownloads) {
+  AndroidInterface.salvarJsonNaPastaDownloads(JSON.stringify(pacote), nomeProjeto);
+} else {
+  // Fallback para navegador normal (PC ou mobile browser)
   const blob = new Blob([JSON.stringify(pacote, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
 
@@ -74,6 +78,7 @@ function exportarProjeto(nomeProjeto) {
   a.click();
 
   URL.revokeObjectURL(url);
+   }
 }
 
 function importarProjeto(arquivo) {
