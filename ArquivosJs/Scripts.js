@@ -462,7 +462,7 @@ function executarTodos() {
   const blocosPorProjeto = JSON.parse(localStorage.getItem("blocosPorProjeto")) || {};
   const projeto = localStorage.getItem("projetoSelecionado");
 
-  if (!projeto || !blocosPorProjeto[projeto]) return;
+    if (!projeto) return;
 
   const dadosDoProjeto = blocosPorProjeto[projeto];
 
