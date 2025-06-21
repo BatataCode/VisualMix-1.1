@@ -1,2 +1,2 @@
-# VisualMixx
+# VisualMix
 Criador: Batata Code
