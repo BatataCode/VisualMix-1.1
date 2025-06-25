@@ -1,0 +1,316 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100dvh;
+  background: #1f2333;
+  font-family: sans-serif;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  user-select: none;
+}
+
+button {
+  padding: 12px 20px;
+  background: linear-gradient(to bottom, #3f51b5, #303f9f);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+#AreaTodosBotoes {
+  position: fixed;
+  bottom: 7%;
+  left: 75%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+  z-index: 1000;
+}
+
+#botaoSelecionar,
+#botaoExecutar, 
+#botaoCopiarBloco,
+#botaoImagem {
+  border-radius: 50%;
+  font-size: 30px;
+  width: 60px;
+  height: 60px;
+  padding: 37px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#title-scripts {
+  position: fixed;
+  right: 77%;
+  color: yellow;
+}
+
+/* MODAL */
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background: #2c2f4a;
+  padding-right: 30px;
+  padding-left: 30px;
+  padding-bottom: 30px;
+  text-align: center;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+}
+
+.opcoes-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+.bloco {
+  padding: 12px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 5px;
+  position: relative;
+  color: white;
+  width: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.bloco h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.bloco input {
+  width: 99%;
+  padding: 8px;
+  border: none;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.bloco .fechar {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(to bottom, #e74c3c, #c0392b);
+  border: 1.5px solid #a5281f;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.bloco.dragging {
+  opacity: 0.5;
+}
+
+#area-blocos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  width: 96vw;
+  max-height: 93dvh;
+  overflow-y: auto;
+  scroll-behavior: none;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-top: 13%;
+  border-radius: 10px;
+}
+
+.titulo-categoria {
+  width: 100%;
+  font-size: 20px;
+  color: #ffd700;
+  margin: 25px 0 10px;
+  text-align: left;
+  padding-left: 10px;
+  border-left: 5px solid #ffd700;
+}
+
+/* 🟦 Movimento */
+.bloco-posicionarCaixa,
+.bloco-posicionarTexto,
+.bloco-mover,
+.bloco-direcao {
+  background: linear-gradient(to bottom, #4C97FF, #377EDC);
+  border: 2px solid #2F65B5;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+/* 🟪 Aparência */
+.bloco-caixa,
+.bloco-cor,
+.bloco-border,
+.bloco-tamanho,
+.bloco-textura,
+.bloco-mostrar,
+.bloco-esconder,
+.bloco-remover,
+.bloco-camada,
+.bloco-criarAnimacao,
+.bloco-pararAnimacao,
+.bloco-continuarAnimacao,
+.bloco-transparencia {
+  background: linear-gradient(to bottom, #B266FF, #9933FF);
+  border: 2px solid #7A1FCC;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+/* 🟧 Controle */
+.bloco-esperar,
+.bloco-if,
+.bloco-fimIf,
+.bloco-repetir,
+.bloco-fimRepetir,
+.bloco-repetirAte,
+.bloco-fimRepetirAte,
+.bloco-loopInfinito,
+.bloco-fimLoopInfinito,
+.bloco-mudarCena,
+.bloco-orientacao {
+  background: linear-gradient(to bottom, #FFAD33, #D98C00);
+  border: 2px solid #B37400;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+/* 🟨 Eventos */
+.bloco-inicioInstantaneo,
+.bloco-fimInstantaneo,
+.bloco-toque,
+.bloco-fimToque {
+  background: linear-gradient(to bottom, #FFDD33, #E6C000);
+  border: 2px solid #CCAA00;
+  color: #2b2b2b;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* 🟩 Texto */
+.bloco-texto,
+.bloco-fonteTexto,
+.bloco-tamanhoFonte,
+.bloco-corTexto {
+  background: linear-gradient(to bottom, #4CAF50, #3C9142);
+  border: 2px solid #2E7D32;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+/* 🟠 Variáveis */
+.bloco-criarVariavel,
+.bloco-alterarVariavel,
+.bloco-criarLista,
+.bloco-adicionarLista,
+.bloco-removerItemLista,
+.bloco-limparLista {
+  background: linear-gradient(to bottom, #FF8C1A, #E67300);
+  border: 2px solid #CC6600;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+/* 🔹 Bloco Câmera */
+.bloco-camera, 
+.bloco-fixarCaixa,
+.bloco-suavidadeCamera {
+  background: linear-gradient(to bottom, #3399FF, #2176CC);
+  border: 2px solid #1A5EAA;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+/* 💬 Comentários */
+.bloco-comentario,
+.bloco-fimComentario {
+  background: linear-gradient(to bottom, #D0D0D0, #B0B0B0);
+  border: 2px solid #888888;
+  color: #2b2b2b;
+  text-shadow: none;
+}
+
+/* Extras */
+.alvo {
+  width: 100px;
+  height: 100px;
+  background: tomato;
+  margin-top: 20px;
+  margin-right: 10px;
+  display: inline-block;
+  transition: all 0.3s;
+}
+
+.toggle-visibilidade {
+  position: absolute;
+  top: 5px;
+  right: 37px;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(to bottom, #878BFF, #6569FF);
+  border: 1px solid #4E52D9;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  border-radius: 6px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+button#botaoCopiarBloco.ativo {
+  background: linear-gradient(to bottom, #5CD121, #47B300);
+  color: white;
+  box-shadow: 0 3px 6px rgba(60, 140, 0, 0.3);
+  font-weight: bold;
+}
