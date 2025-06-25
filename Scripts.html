@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="ArquivosCss/Scripts.css">
+  <title>Scripts</title>
+</head>
+<body>
+
+  <!-- Nome do objeto selecionado -->
+  <div id="nomeObjetoSelecionado" style="
+    font-weight: bold;
+    color: white;
+    font-size: 30px;
+    margin: 10px;
+    position: fixed;
+    z-index: 1000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+    top: 1%;
+  ">
+    Objeto:
+  </div>
+
+  <!-- Área dos botões principais -->
+  <div id="AreaTodosBotoes">
+    <button id="botaoImagem" class="botao-imagem" onclick="abrirSeletorDeImagens()">📂</button>
+    <button id="botaoCopiarBloco" class="botao-copiar">📋</button>
+    <button id="botaoSelecionar" onclick="abrirModal()">+</button>
+    <button id="botaoExecutar" onclick="executarTodos()">></button>
+  </div>
+
+  <div id="area-blocos"></div>
+
+  <!-- Modal de Escolha -->
+  <div id="modalEscolha" class="modal">
+    <div class="modal-content">
+      <div class="opcoes-container">
+
+        <!-- Categorias e blocos -->
+        <h3 class="titulo-categoria">Eventos</h3>
+        <div class="bloco bloco-inicioInstantaneo" onclick="adicionarBloco('inicioInstantaneo')"><h3>Quando Começar</h3></div>
+        <div class="bloco bloco-toque" onclick="adicionarBloco('toque')"><h3>Quando Tocar</h3></div>
+
+        <h3 class="titulo-categoria">Controle</h3>
+        <div class="bloco bloco-if" onclick="adicionarBloco('if')"><h3>Se (condição)</h3></div>
+        <div class="bloco bloco-repetir" onclick="adicionarBloco('repetir')"><h3>Repetir (vezes)</h3></div>
+        <div class="bloco bloco-repetirAte" onclick="adicionarBloco('repetirAte')"><h3>Repetir até (condição)</h3></div>
+        <div class="bloco bloco-loopInfinito" onclick="adicionarBloco('loopInfinito')"><h3>Repetir Sempre</h3></div>
+        <div class="bloco bloco-mudarCena" onclick="adicionarBloco('mudarCena')"><h3>Trocar De Cena</h3></div>
+        <div class="bloco bloco-orientacao" onclick="adicionarBloco('orientacao')"><h3>Definir Orientação</h3></div>
+        <div class="bloco bloco-esperar" onclick="adicionarBloco('esperar')"><h3>Aguardar Segundos</h3></div>
+
+        <h3 class="titulo-categoria">Movimento</h3>
+        <div class="bloco bloco-posicionarCaixa" onclick="adicionarBloco('posicionarCaixa')"><h3>Posicionar Caixa</h3></div>
+        <div class="bloco bloco-posicionarTexto" onclick="adicionarBloco('posicionarTexto')"><h3>Posicionar Texto</h3></div>
+        <div class="bloco bloco-mover" onclick="adicionarBloco('mover')"><h3>Mover (Passos)</h3></div>
+        <div class="bloco bloco-direcao" onclick="adicionarBloco('direcao')"><h3>Definir Direção</h3></div>
+
+        <h3 class="titulo-categoria">Aparência</h3>
+        <div class="bloco bloco-caixa" onclick="adicionarBloco('caixa')"><h3>Criar Caixa</h3></div>
+        <div class="bloco bloco-cor" onclick="adicionarBloco('cor')"><h3>Alterar Cor</h3></div>
+        <div class="bloco bloco-border" onclick="adicionarBloco('border')"><h3>Alterar Borda</h3></div>
+        <div class="bloco bloco-tamanho" onclick="adicionarBloco('tamanho')"><h3>Alterar Tamanho</h3></div>
+        <div class="bloco bloco-transparencia" onclick="adicionarBloco('transparencia')"><h3>Definir Transparência</h3></div>
+        <div class="bloco bloco-textura" onclick="adicionarBloco('textura')"><h3>Definir Textura</h3></div>
+        <div class="bloco bloco-criarAnimacao" onclick="adicionarBloco('criarAnimacao')"><h3>Criar Animação</h3></div>
+        <div class="bloco bloco-pararAnimacao" onclick="adicionarBloco('pararAnimacao')"><h3>Parar Animação</h3></div>
+        <div class="bloco bloco-continuarAnimacao" onclick="adicionarBloco('continuarAnimacao')"><h3>Continuar Animação</h3></div>
+        <div class="bloco bloco-mostrar" onclick="adicionarBloco('mostrar')"><h3>Mostrar Caixa</h3></div>
+        <div class="bloco bloco-esconder" onclick="adicionarBloco('esconder')"><h3>Esconder Caixa</h3></div>
+        <div class="bloco bloco-remover" onclick="adicionarBloco('remover')"><h3>Remover Caixa</h3></div>
+        <div class="bloco bloco-camada" onclick="adicionarBloco('camada')"><h3>Alterar Camada</h3></div>
+
+        <h3 class="titulo-categoria">Texto</h3>
+        <div class="bloco bloco-texto" onclick="adicionarBloco('texto')"><h3>Mostrar Texto</h3></div>
+        <div class="bloco bloco-fonteTexto" onclick="adicionarBloco('fonteTexto')"><h3>Fonte do Texto</h3></div>
+        <div class="bloco bloco-tamanhoFonte" onclick="adicionarBloco('tamanhoFonte')"><h3>Tamanho do Texto</h3></div>
+        <div class="bloco bloco-corTexto" onclick="adicionarBloco('corTexto')"><h3>Cor do Texto</h3></div>
+
+        <h3 class="titulo-categoria">Variáveis</h3>
+        <div class="bloco bloco-criarVariavel" onclick="adicionarBloco('criarVariavel')"><h3>Criar Variável</h3></div>
+        <div class="bloco bloco-alterarVariavel" onclick="adicionarBloco('alterarVariavel')"><h3>Alterar Variável</h3></div>
+        <div class="bloco bloco-criarLista" onclick="adicionarBloco('criarLista')"><h3>Criar Lista</h3></div>
+        <div class="bloco bloco-adicionarLista" onclick="adicionarBloco('adicionarLista')"><h3>Adicionar na Lista</h3></div>
+        <div class="bloco bloco-removerItemLista" onclick="adicionarBloco('removerItemLista')"><h3>Remover da Lista</h3></div>
+        <div class="bloco bloco-limparLista" onclick="adicionarBloco('limparLista')"><h3>Limpar Lista</h3></div>
+
+        <h3 class="titulo-categoria">Câmera</h3>
+        <div class="bloco bloco-camera" onclick="adicionarBloco('camera')"><h3>Adicionar Camera</h3></div>
+        <div class="bloco bloco-suavidadeCamera" onclick="adicionarBloco('suavidadeCamera')"><h3>Definir Suavidade</h3></div>
+        <div class="bloco bloco-fixarCaixa" onclick="adicionarBloco('fixarCaixa')"><h3>Fixar Caixa</h3></div>
+
+        <h3 class="titulo-categoria">Comentários</h3>
+        <div class="bloco bloco-comentario" onclick="adicionarBloco('comentario')"><h3>Comentário</h3></div>
+
+        <br>
+        <button onclick="fecharModal()">Fechar</button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal do editor de expressões -->
+  <div id="modalCalculadora" style="display:none; position:absolute; inset:0; background:#000000aa; justify-content:center; align-items:center; z-index:10000;">
+    <div style="background:#1e1e1e; padding:20px; border-radius:12px; width:70%; color:white; font-family:sans-serif; box-shadow:0 0 20px #000; position:relative;">
+      <h3 style="margin:0 0 10px;">Script Editor</h3>
+
+      <input id="inputExpressao" type="text" placeholder="Digite a expressão"
+        style="width:100%; padding:10px; font-size:18px; border-radius:6px; border:none; outline:none;" />
+
+      <div id="sugestoesCalculadora" style="
+        background: white;
+        color: black;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        max-height: 150px;
+        overflow-y: auto;
+        display: none;
+        z-index: 10001;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      "></div>
+
+      <div id="resultadoExpressao" style="
+        text-align: right;
+        margin-bottom: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      ">
+        =
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+        <button onclick="clicarBotao(' não ')">não</button>
+        <button onclick="clicarBotao(' e ')">e</button>
+        <button onclick="clicarBotao(' ou ')">ou</button>
+        <button onclick="clicarBotao(' ≠ ')">≠</button>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button onclick="fecharCalculadora()" style="padding:8px 14px; border:none; border-radius:6px; background:#888; color:white;">Cancelar</button>
+        <button onclick="aplicarResultado()" style="padding:8px 14px; background:#4caf50; border:none; color:white; border-radius:6px;">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Imagens -->
+  <div id="modalImagens" style="display:none; position:fixed; inset:0; background:#000000aa; justify-content:center; align-items:center; z-index:10000;">
+    <div style="background:#1e1e1e; padding:20px; border-radius:12px; max-width:90%; max-height:80%; overflow:auto; color:white; font-family:sans-serif; box-shadow:0 0 20px #000; position:relative;">
+      <h3 style="margin-top:0;">Escolher Imagem</h3>
+
+<div id="listaImagens" style="
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  justify-items: center;
+  align-content: start;
+  gap: 10px;
+  margin-bottom: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+">
+</div>
+
+      <input type="file" id="inputNovaImagem" accept="image/*" style="display:none" onchange="salvarNovaImagem(event)">
+      <button onclick="document.getElementById('inputNovaImagem').click()" style="padding:8px 14px; background:#2196f3; border:none; border-radius:6px; color:white;">Adicionar Imagem</button>
+      <button onclick="fecharModalImagens()" style="padding:8px 14px; background:#888; border:none; border-radius:6px; color:white; margin-left: 10px;">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="ArquivosJs/Scripts.js"></script>
+  <script src="ArquivosJs/EditorEsprecoes.js"></script>
+</body>
+</html>

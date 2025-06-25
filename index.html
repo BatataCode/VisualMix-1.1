@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>VisualMix - Intro</title>
+
+  <!-- Fonte futurista -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      background: radial-gradient(circle at center, #000611, #000);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      color: #00ffff;
+    }
+
+    .container {
+      text-align: center;
+      animation: entradaSuave 2s ease-out;
+    }
+
+    .logo {
+      font-size: clamp(2.5rem, 7vw, 5rem);
+      font-weight: 700;
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 40px #0ff;
+      animation: brilharNeon 2s ease-in-out infinite alternate;
+      opacity: 0;
+      animation: aparecerLogo 1.2s ease-out forwards;
+    }
+
+    .autor {
+      font-size: 1.2rem;
+      margin-top: 1.5rem;
+      color: #aaffff;
+      opacity: 0;
+      animation: aparecerAutor 1.2s ease-out forwards;
+      animation-delay: 2s;
+    }
+
+    .digitando::after {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 1.2em;
+      background: #0ff;
+      animation: cursorPisca 0.7s steps(1) infinite;
+      margin-left: 4px;
+      vertical-align: bottom;
+    }
+
+    @keyframes cursorPisca {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    @keyframes brilharNeon {
+      0% {
+        text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+      }
+      100% {
+        text-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
+      }
+    }
+
+    @keyframes aparecerLogo {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes aparecerAutor {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+    }
+
+    @keyframes entradaSuave {
+      from {
+        opacity: 0;
+        transform: scale(1.05);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .fadeout {
+      animation: sumir 2s ease forwards;
+    }
+
+    @keyframes sumir {
+      to {
+        opacity: 0;
+        transform: scale(0.9);
+        filter: blur(6px);
+      }
+    }
+
+    /* Fundo com partículas */
+    .particulas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(0,255,255,0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+      animation: movimentoParticulas 40s linear infinite;
+    }
+
+    @keyframes movimentoParticulas {
+      0% { background-position: 0 0; }
+      100% { background-position: 200px 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="particulas"></div>
+
+  <div class="container">
+    <div class="logo" id="logo"><span id="textoDigitando"></span><span class="digitando"></span></div>
+    <div class="autor" id="autor">Criado por <strong>Batata Code</strong></div>
+  </div>
+
+<script>
+  const texto = "VisualMix";
+  const textoEl = document.getElementById('textoDigitando');
+  const logo = document.getElementById('logo');
+  const autor = document.getElementById('autor');
+  let i = 0;
+
+  function digitar() {
+    if (i < texto.length) {
+      textoEl.textContent += texto.charAt(i);
+      i++;
+      setTimeout(digitar, 200);
+    }
+  }
+
+  setTimeout(digitar, 1000);
+
+  setTimeout(() => {
+    logo.classList.add('fadeout');
+    autor.classList.add('fadeout');
+  }, 6000);
+  
+  setTimeout(() => {
+    window.location.href = "Projetos.html";
+  },
+  6000);
+</script>
+</body>
+</html>
