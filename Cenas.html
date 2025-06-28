@@ -29,6 +29,17 @@
       </div>
     </div>
   </div>
+  
+  <!-- Modal de Edição de Cena -->
+<div id="modalEditarCena" class="modal" style="display: none;">
+  <div class="modal-content">
+    <button class="botao-fechar" onclick="fecharModalEditarCena()">×</button>
+    <h2>Editar Nome da Cena</h2>
+    <input type="text" id="inputEditarNomeCena" placeholder="Novo nome da cena" />
+    <small id="mensagemErroEditarCena" style="color: red; display: none;"></small>
+    <button onclick="confirmarEdicaoCena()">Salvar</button>
+  </div>
+</div>
 
   <script src="ArquivosJs/Cenas.js">
   </script>

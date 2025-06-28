@@ -27,6 +27,17 @@
       </div>
     </div>
   </div>
+  
+  <!-- Modal de Edição de Objeto -->
+<div id="modalEditarObjeto" class="modal" style="display: none;">
+  <div class="modal-content">
+    <button class="botao-fechar" onclick="fecharModalEditarObjeto()">×</button>
+    <h2>Editar Nome do Objeto</h2>
+    <input type="text" id="inputEditarNomeObjeto" placeholder="Novo nome do objeto" />
+    <small id="mensagemErroEditarObjeto" style="color: red; display: none;"></small>
+    <button onclick="confirmarEdicaoObjeto()">Salvar</button>
+  </div>
+</div>
 
   <script src="ArquivosJs/Objetos.js"></script>
 </body>

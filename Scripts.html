@@ -32,6 +32,26 @@
     <button id="botaoSelecionar" onclick="abrirModal()">+</button>
     <button id="botaoExecutar" onclick="executarTodos()">></button>
   </div>
+ <button id="toggleBotoes" aria-label="Alternar botões" title="Mostrar/Esconder botões" style="
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(to bottom, #3f51b5, #303f9f);
+  color: white;
+  font-size: 24px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+  transition: background-color 0.3s ease;
+">
+  ☰
+</button>
 
   <div id="area-blocos"></div>
 
@@ -40,67 +60,88 @@
     <div class="modal-content">
       <div class="opcoes-container">
 
-        <!-- Categorias e blocos -->
-        <h3 class="titulo-categoria">Eventos</h3>
-        <div class="bloco bloco-inicioInstantaneo" onclick="adicionarBloco('inicioInstantaneo')"><h3>Quando Começar</h3></div>
-        <div class="bloco bloco-toque" onclick="adicionarBloco('toque')"><h3>Quando Tocar</h3></div>
+<!-- CATEGORIA: Eventos -->
+<h3 class="titulo-categoria">Eventos</h3>
+<div class="bloco bloco-inicioInstantaneo" onclick="adicionarBloco('inicioInstantaneo')"><h3>Ao iniciar</h3></div>
+<div class="bloco bloco-toque" onclick="adicionarBloco('toque')"><h3>Ao tocar em caixa</h3></div>
+<div class="bloco bloco-toqueNaTela" onclick="adicionarBloco('toqueNaTela')"><h3>Ao tocar na tela</h3></div>
+<div class="bloco bloco-aoCriarClone" onclick="adicionarBloco('aoCriarClone')"><h3>Ao criar clone</h3></div>
 
-        <h3 class="titulo-categoria">Controle</h3>
-        <div class="bloco bloco-if" onclick="adicionarBloco('if')"><h3>Se (condição)</h3></div>
-        <div class="bloco bloco-repetir" onclick="adicionarBloco('repetir')"><h3>Repetir (vezes)</h3></div>
-        <div class="bloco bloco-repetirAte" onclick="adicionarBloco('repetirAte')"><h3>Repetir até (condição)</h3></div>
-        <div class="bloco bloco-loopInfinito" onclick="adicionarBloco('loopInfinito')"><h3>Repetir Sempre</h3></div>
-        <div class="bloco bloco-mudarCena" onclick="adicionarBloco('mudarCena')"><h3>Trocar De Cena</h3></div>
-        <div class="bloco bloco-orientacao" onclick="adicionarBloco('orientacao')"><h3>Definir Orientação</h3></div>
-        <div class="bloco bloco-esperar" onclick="adicionarBloco('esperar')"><h3>Aguardar Segundos</h3></div>
+<!-- CATEGORIA: Controle de Fluxo -->
+<h3 class="titulo-categoria">Controle de Fluxo</h3>
+<div class="bloco bloco-if" onclick="adicionarBloco('if')"><h3>Se (condição)</h3></div>
+<div class="bloco bloco-repetir" onclick="adicionarBloco('repetir')"><h3>Repetir (vezes)</h3></div>
+<div class="bloco bloco-repetirAte" onclick="adicionarBloco('repetirAte')"><h3>Repetir até</h3></div>
+<div class="bloco bloco-loopInfinito" onclick="adicionarBloco('loopInfinito')"><h3>Repetir sempre</h3></div>
+<div class="bloco bloco-esperar" onclick="adicionarBloco('esperar')"><h3>Esperar (segundos)</h3></div>
+<div class="bloco bloco-mudarCena" onclick="adicionarBloco('mudarCena')"><h3>Mudar de cena</h3></div>
+<div class="bloco bloco-orientacao" onclick="adicionarBloco('orientacao')"><h3>Definir orientação da tela</h3></div>
 
-        <h3 class="titulo-categoria">Movimento</h3>
-        <div class="bloco bloco-posicionarCaixa" onclick="adicionarBloco('posicionarCaixa')"><h3>Posicionar Caixa</h3></div>
-        <div class="bloco bloco-posicionarTexto" onclick="adicionarBloco('posicionarTexto')"><h3>Posicionar Texto</h3></div>
-        <div class="bloco bloco-mover" onclick="adicionarBloco('mover')"><h3>Mover (Passos)</h3></div>
-        <div class="bloco bloco-direcao" onclick="adicionarBloco('direcao')"><h3>Definir Direção</h3></div>
+<!-- CATEGORIA: Criação e Clonagem -->
+<h3 class="titulo-categoria">Criação e Clonagem</h3>
+<div class="bloco bloco-caixa" onclick="adicionarBloco('caixa')"><h3>Criar caixa</h3></div>
+<div class="bloco bloco-clonar" onclick="adicionarBloco('clonar')"><h3>Clonar caixa</h3></div>
+<div class="bloco bloco-carimbo" onclick="adicionarBloco('carimbo')"><h3>Carimbar caixa</h3></div>
+<div class="bloco bloco-limparCarimbos" onclick="adicionarBloco('limparCarimbos')"><h3>Limpar carimbos</h3></div>
 
-        <h3 class="titulo-categoria">Aparência</h3>
-        <div class="bloco bloco-caixa" onclick="adicionarBloco('caixa')"><h3>Criar Caixa</h3></div>
-        <div class="bloco bloco-cor" onclick="adicionarBloco('cor')"><h3>Alterar Cor</h3></div>
-        <div class="bloco bloco-border" onclick="adicionarBloco('border')"><h3>Alterar Borda</h3></div>
-        <div class="bloco bloco-tamanho" onclick="adicionarBloco('tamanho')"><h3>Alterar Tamanho</h3></div>
-        <div class="bloco bloco-transparencia" onclick="adicionarBloco('transparencia')"><h3>Definir Transparência</h3></div>
-        <div class="bloco bloco-textura" onclick="adicionarBloco('textura')"><h3>Definir Textura</h3></div>
-        <div class="bloco bloco-criarAnimacao" onclick="adicionarBloco('criarAnimacao')"><h3>Criar Animação</h3></div>
-        <div class="bloco bloco-pararAnimacao" onclick="adicionarBloco('pararAnimacao')"><h3>Parar Animação</h3></div>
-        <div class="bloco bloco-continuarAnimacao" onclick="adicionarBloco('continuarAnimacao')"><h3>Continuar Animação</h3></div>
-        <div class="bloco bloco-mostrar" onclick="adicionarBloco('mostrar')"><h3>Mostrar Caixa</h3></div>
-        <div class="bloco bloco-esconder" onclick="adicionarBloco('esconder')"><h3>Esconder Caixa</h3></div>
-        <div class="bloco bloco-remover" onclick="adicionarBloco('remover')"><h3>Remover Caixa</h3></div>
-        <div class="bloco bloco-camada" onclick="adicionarBloco('camada')"><h3>Alterar Camada</h3></div>
+<!-- CATEGORIA: Movimento e Física -->
+<h3 class="titulo-categoria">Movimento e Física</h3>
+<div class="bloco bloco-posicionarCaixa" onclick="adicionarBloco('posicionarCaixa')"><h3>Definir posição da caixa</h3></div>
+<div class="bloco bloco-posicionarTexto" onclick="adicionarBloco('posicionarTexto')"><h3>Definir posição do texto</h3></div>
+<div class="bloco bloco-mover" onclick="adicionarBloco('mover')"><h3>Mover (passos)</h3></div>
+<div class="bloco bloco-direcao" onclick="adicionarBloco('direcao')"><h3>Definir direção</h3></div>
+<div class="bloco bloco-colisaoSolida" onclick="adicionarBloco('colisaoSolida')"><h3>Habilitar colisão</h3></div>
+<div class="bloco bloco-gravidade" onclick="adicionarBloco('gravidade')"><h3>Aplicar gravidade</h3></div>
+<div class="bloco bloco-pular" onclick="adicionarBloco('pular')"><h3>Pular</h3></div>
 
-        <h3 class="titulo-categoria">Texto</h3>
-        <div class="bloco bloco-texto" onclick="adicionarBloco('texto')"><h3>Mostrar Texto</h3></div>
-        <div class="bloco bloco-fonteTexto" onclick="adicionarBloco('fonteTexto')"><h3>Fonte do Texto</h3></div>
-        <div class="bloco bloco-tamanhoFonte" onclick="adicionarBloco('tamanhoFonte')"><h3>Tamanho do Texto</h3></div>
-        <div class="bloco bloco-corTexto" onclick="adicionarBloco('corTexto')"><h3>Cor do Texto</h3></div>
+<!-- CATEGORIA: Aparência e Estilo -->
+<h3 class="titulo-categoria">Aparência e Estilo</h3>
+<div class="bloco bloco-cor" onclick="adicionarBloco('cor')"><h3>Definir cor</h3></div>
+<div class="bloco bloco-border" onclick="adicionarBloco('border')"><h3>Definir borda</h3></div>
+<div class="bloco bloco-tamanho" onclick="adicionarBloco('tamanho')"><h3>Definir tamanho</h3></div>
+<div class="bloco bloco-transparencia" onclick="adicionarBloco('transparencia')"><h3>Definir transparência</h3></div>
+<div class="bloco bloco-textura" onclick="adicionarBloco('textura')"><h3>Definir imagem</h3></div>
+<div class="bloco bloco-camada" onclick="adicionarBloco('camada')"><h3>Definir camada</h3></div>
+<div class="bloco bloco-efeito"
+onclick="adicionarBloco('efeito')"><h3>Aplicar efeito</h3></div>
+<div class="bloco bloco-mostrar" onclick="adicionarBloco('mostrar')"><h3>Mostrar caixa</h3></div>
+<div class="bloco bloco-esconder" onclick="adicionarBloco('esconder')"><h3>Esconder caixa</h3></div>
+<div class="bloco bloco-remover" onclick="adicionarBloco('remover')"><h3>Remover caixa</h3></div>
 
-        <h3 class="titulo-categoria">Variáveis</h3>
-        <div class="bloco bloco-criarVariavel" onclick="adicionarBloco('criarVariavel')"><h3>Criar Variável</h3></div>
-        <div class="bloco bloco-alterarVariavel" onclick="adicionarBloco('alterarVariavel')"><h3>Alterar Variável</h3></div>
-        <div class="bloco bloco-criarLista" onclick="adicionarBloco('criarLista')"><h3>Criar Lista</h3></div>
-        <div class="bloco bloco-adicionarLista" onclick="adicionarBloco('adicionarLista')"><h3>Adicionar na Lista</h3></div>
-        <div class="bloco bloco-removerItemLista" onclick="adicionarBloco('removerItemLista')"><h3>Remover da Lista</h3></div>
-        <div class="bloco bloco-limparLista" onclick="adicionarBloco('limparLista')"><h3>Limpar Lista</h3></div>
+<!-- CATEGORIA: Animações -->
+<h3 class="titulo-categoria">Animações</h3>
+<div class="bloco bloco-criarAnimacao" onclick="adicionarBloco('criarAnimacao')"><h3>Criar animação</h3></div>
+<div class="bloco bloco-pararAnimacao" onclick="adicionarBloco('pararAnimacao')"><h3>Parar animação</h3></div>
+<div class="bloco bloco-continuarAnimacao" onclick="adicionarBloco('continuarAnimacao')"><h3>Continuar animação</h3></div>
 
-        <h3 class="titulo-categoria">Câmera</h3>
-        <div class="bloco bloco-camera" onclick="adicionarBloco('camera')"><h3>Adicionar Camera</h3></div>
-        <div class="bloco bloco-suavidadeCamera" onclick="adicionarBloco('suavidadeCamera')"><h3>Definir Suavidade</h3></div>
-        <div class="bloco bloco-fixarCaixa" onclick="adicionarBloco('fixarCaixa')"><h3>Fixar Caixa</h3></div>
+<!-- CATEGORIA: Texto -->
+<h3 class="titulo-categoria">Texto</h3>
+<div class="bloco bloco-texto" onclick="adicionarBloco('texto')"><h3>Mostrar texto</h3></div>
+<div class="bloco bloco-fonteTexto" onclick="adicionarBloco('fonteTexto')"><h3>Fonte do texto</h3></div>
+<div class="bloco bloco-tamanhoFonte" onclick="adicionarBloco('tamanhoFonte')"><h3>Tamanho do texto</h3></div>
+<div class="bloco bloco-corTexto" onclick="adicionarBloco('corTexto')"><h3>Cor do texto</h3></div>
 
-        <h3 class="titulo-categoria">Comentários</h3>
-        <div class="bloco bloco-comentario" onclick="adicionarBloco('comentario')"><h3>Comentário</h3></div>
+<!-- CATEGORIA: Variáveis e Listas -->
+<h3 class="titulo-categoria">Variáveis e Listas</h3>
+<div class="bloco bloco-criarVariavel" onclick="adicionarBloco('criarVariavel')"><h3>Criar variável</h3></div>
+<div class="bloco bloco-alterarVariavel" onclick="adicionarBloco('alterarVariavel')"><h3>Alterar variável</h3></div>
+<div class="bloco bloco-criarLista" onclick="adicionarBloco('criarLista')"><h3>Criar lista</h3></div>
+<div class="bloco bloco-adicionarLista" onclick="adicionarBloco('adicionarLista')"><h3>Adicionar na lista</h3></div>
+<div class="bloco bloco-removerItemLista" onclick="adicionarBloco('removerItemLista')"><h3>Remover da lista</h3></div>
+<div class="bloco bloco-limparLista" onclick="adicionarBloco('limparLista')"><h3>Limpar lista</h3></div>
 
+<!-- CATEGORIA: Câmera -->
+<h3 class="titulo-categoria">Câmera</h3>
+<div class="bloco bloco-camera" onclick="adicionarBloco('camera')"><h3>Ativar câmera</h3></div>
+<div class="bloco bloco-suavidadeCamera" onclick="adicionarBloco('suavidadeCamera')"><h3>Definir suavidade</h3></div>
+<div class="bloco bloco-fixarCaixa" onclick="adicionarBloco('fixarCaixa')"><h3>Fixar na câmera</h3></div>
+
+<!-- CATEGORIA: Comentários -->
+<h3 class="titulo-categoria">Comentários</h3>
+<div class="bloco bloco-comentario" onclick="adicionarBloco('comentario')"><h3>Comentário</h3></div>
+       </div>
         <br>
         <button onclick="fecharModal()">Fechar</button>
-
-      </div>
     </div>
   </div>
 
@@ -150,31 +191,42 @@
     </div>
   </div>
 
-  <!-- Modal de Imagens -->
-  <div id="modalImagens" style="display:none; position:fixed; inset:0; background:#000000aa; justify-content:center; align-items:center; z-index:10000;">
-    <div style="background:#1e1e1e; padding:20px; border-radius:12px; max-width:90%; max-height:80%; overflow:auto; color:white; font-family:sans-serif; box-shadow:0 0 20px #000; position:relative;">
-      <h3 style="margin-top:0;">Escolher Imagem</h3>
-
-<div id="listaImagens" style="
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  justify-items: center;
-  align-content: start;
-  gap: 10px;
-  margin-bottom: 15px;
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 10px;
-  width: 100%;
-  box-sizing: border-box;
+<!-- Modal de Imagens -->
+<div id="modalImagens" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000000aa;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
 ">
-</div>
 
+  <div style="
+    background: #1e1e1e;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    color: white;
+    font-family: sans-serif;
+    box-shadow: none;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  ">
+    <h3 style="margin-top: 0;">Escolher Imagem</h3>
+
+<div id="listaImagens"></div>
+
+    <div style="margin-top: 15px;">
       <input type="file" id="inputNovaImagem" accept="image/*" style="display:none" onchange="salvarNovaImagem(event)">
       <button onclick="document.getElementById('inputNovaImagem').click()" style="padding:8px 14px; background:#2196f3; border:none; border-radius:6px; color:white;">Adicionar Imagem</button>
       <button onclick="fecharModalImagens()" style="padding:8px 14px; background:#888; border:none; border-radius:6px; color:white; margin-left: 10px;">Fechar</button>
     </div>
   </div>
+</div>
 
   <!-- Scripts -->
   <script src="ArquivosJs/Scripts.js"></script>

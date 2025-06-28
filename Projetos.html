@@ -54,6 +54,17 @@
     <button onclick="confirmarExportacao()">Exportar</button>
   </div>
 </div>
+
+  <!-- Modal de Edição de Nome -->
+<div id="modalEditarProjeto" class="modal" style="display: none;">
+  <div class="modal-content">
+    <button class="botao-fechar" onclick="fecharModalEditarProjeto()">×</button>
+    <h2>Editar Nome do Projeto</h2>
+    <input type="text" id="inputEditarNomeProjeto" placeholder="Novo nome do projeto" />
+    <small id="mensagemErroEditar" style="color: red; display: none;"></small>
+    <button onclick="confirmarEdicaoNome()">Salvar</button>
+  </div>
+</div>
   <script src="ArquivosJs/Projetos.js"></script>
   <script src="ArquivosJs/Compartilhar.js"></script>
 </body>
