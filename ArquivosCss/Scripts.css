@@ -35,6 +35,16 @@ button {
   gap: 15px;
   align-items: center;
   z-index: 1000;
+
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+#AreaTodosBotoes.escondido {
+  transform: translateY(-20px);
+  opacity: 0;
+  pointer-events: none;
 }
 
 #botaoSelecionar,
@@ -181,36 +191,22 @@ button {
   border-left: 5px solid #ffd700;
 }
 
-/* 🟦 Movimento */
-.bloco-posicionarCaixa,
-.bloco-posicionarTexto,
-.bloco-mover,
-.bloco-direcao {
-  background: linear-gradient(to bottom, #4C97FF, #377EDC);
-  border: 2px solid #2F65B5;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+/* 🟨 Eventos */
+.bloco-inicioInstantaneo,
+.bloco-fimInstantaneo,
+.bloco-toque,
+.bloco-fimToque,
+.bloco-toqueNaTela,
+.bloco-fimToqueNaTela,
+.bloco-aoCriarClone,
+.bloco-fimAoCriarClone {
+  background: linear-gradient(to bottom, #FFC107, #FFA000);
+  border: 2px solid #FF6F00;
+  color: #212121;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
-/* 🟪 Aparência */
-.bloco-caixa,
-.bloco-cor,
-.bloco-border,
-.bloco-tamanho,
-.bloco-textura,
-.bloco-mostrar,
-.bloco-esconder,
-.bloco-remover,
-.bloco-camada,
-.bloco-criarAnimacao,
-.bloco-pararAnimacao,
-.bloco-continuarAnimacao,
-.bloco-transparencia {
-  background: linear-gradient(to bottom, #B266FF, #9933FF);
-  border: 2px solid #7A1FCC;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
-}
-
-/* 🟧 Controle */
+/* 🟧 Controle de Fluxo */
 .bloco-esperar,
 .bloco-if,
 .bloco-fimIf,
@@ -222,20 +218,62 @@ button {
 .bloco-fimLoopInfinito,
 .bloco-mudarCena,
 .bloco-orientacao {
-  background: linear-gradient(to bottom, #FFAD33, #D98C00);
-  border: 2px solid #B37400;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(to bottom, #FF5722, #E64A19);
+  border: 2px solid #BF360C;
+  color: #FAFAFA;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
 }
 
-/* 🟨 Eventos */
-.bloco-inicioInstantaneo,
-.bloco-fimInstantaneo,
-.bloco-toque,
-.bloco-fimToque {
-  background: linear-gradient(to bottom, #FFDD33, #E6C000);
-  border: 2px solid #CCAA00;
-  color: #2b2b2b;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);
+/* 💗 Criação e Clonagem */
+.bloco-caixa,
+.bloco-clonar,
+.bloco-carimbo,
+.bloco-limparCarimbos {
+  background: linear-gradient(to bottom, #E91E63, #C2185B);
+  border: 2px solid #880E4F;
+  color: #FAFAFA;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+/* 🟦 Movimento e Física */
+.bloco-posicionarCaixa,
+.bloco-posicionarTexto,
+.bloco-mover,
+.bloco-direcao,
+.bloco-colisaoSolida,
+.bloco-gravidade,
+.bloco-pular {
+  background: linear-gradient(to bottom, #2196F3, #1976D2);
+  border: 2px solid #0D47A1;
+  color: #FAFAFA;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+/* 🟪 Aparência e Estilo */
+.bloco-cor,
+.bloco-border,
+.bloco-tamanho,
+.bloco-transparencia,
+.bloco-textura,
+.bloco-camada,
+.bloco-mostrar,
+.bloco-esconder,
+.bloco-remover,
+.bloco-efeito {
+  background: linear-gradient(to bottom, #9C27B0, #7B1FA2);
+  border: 2px solid #4A148C;
+  color: #FAFAFA;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+/* 🎞️ Animações */
+.bloco-criarAnimacao,
+.bloco-pararAnimacao,
+.bloco-continuarAnimacao {
+  background: linear-gradient(to bottom, #009688, #00796B);
+  border: 2px solid #004D40;
+  color: #FAFAFA;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
 /* 🟩 Texto */
@@ -243,38 +281,41 @@ button {
 .bloco-fonteTexto,
 .bloco-tamanhoFonte,
 .bloco-corTexto {
-  background: linear-gradient(to bottom, #4CAF50, #3C9142);
-  border: 2px solid #2E7D32;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(to bottom, #4CAF50, #388E3C);
+  border: 2px solid #1B5E20;
+  color: #FAFAFA;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
-/* 🟠 Variáveis */
+/* 🟠 Variáveis e Listas */
 .bloco-criarVariavel,
 .bloco-alterarVariavel,
 .bloco-criarLista,
 .bloco-adicionarLista,
 .bloco-removerItemLista,
 .bloco-limparLista {
-  background: linear-gradient(to bottom, #FF8C1A, #E67300);
-  border: 2px solid #CC6600;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(to bottom, #FF9800, #F57C00);
+  border: 2px solid #E65100;
+  color: #212121;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
-/* 🔹 Bloco Câmera */
-.bloco-camera, 
+/* 🔹 Câmera */
+.bloco-camera,
 .bloco-fixarCaixa,
 .bloco-suavidadeCamera {
-  background: linear-gradient(to bottom, #3399FF, #2176CC);
-  border: 2px solid #1A5EAA;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(to bottom, #03A9F4, #0288D1);
+  border: 2px solid #01579B;
+  color: #FAFAFA;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
 /* 💬 Comentários */
 .bloco-comentario,
 .bloco-fimComentario {
-  background: linear-gradient(to bottom, #D0D0D0, #B0B0B0);
-  border: 2px solid #888888;
-  color: #2b2b2b;
+  background: linear-gradient(to bottom, #EEEEEE, #BDBDBD);
+  border: 2px solid #757575;
+  color: #212121;
   text-shadow: none;
 }
 
@@ -309,8 +350,68 @@ button {
 }
 
 button#botaoCopiarBloco.ativo {
-  background: linear-gradient(to bottom, #5CD121, #47B300);
-  color: white;
+  background: linear-gradient(to bottom, #FFE600, #FFB100);
+  color: Black;
   box-shadow: 0 3px 6px rgba(60, 140, 0, 0.3);
   font-weight: bold;
+}
+
+#listaImagens {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 colunas fixas */
+  gap: 18px;
+  padding: 16px;
+  background: #2b2b2b;
+  border-radius: 8px;
+  box-sizing: border-box;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.imagemWrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.imagemMiniatura {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  background-color: #1e1e1e;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.imagemMiniatura:hover {
+  transform: scale(1.05);
+  border-color: #4caf50;
+}
+
+.botaoExcluirImagem {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #f44336;
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 20px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px #00000066;
+  transition: background 0.2s;
+}
+
+.botaoExcluirImagem:hover {
+  background: #d32f2f;
 }
