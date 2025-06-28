@@ -1,11 +1,65 @@
 AndroidInterface.changeOrientation('portrait');
 
+let objetoParaEditar = null;
+let tempoPressionado = null;
+
 function abrirModal() {
-  document.getElementById("modalCriarObjetos").style.display = "flex";
+document.getElementById("modalCriarObjetos").style.display = "flex";
 }
 
 function fecharModal() {
-  document.getElementById("modalCriarObjetos").style.display = "none";
+document.getElementById("modalCriarObjetos").style.display = "none";
+}
+
+function abrirModalEditarObjeto(nomeAntigo) {
+  objetoParaEditar = nomeAntigo;
+  document.getElementById("inputEditarNomeObjeto").value = nomeAntigo;
+  document.getElementById("modalEditarObjeto").style.display = "flex";
+}
+
+function fecharModalEditarObjeto() {
+  document.getElementById("modalEditarObjeto").style.display = "none";
+  objetoParaEditar = null;
+}
+
+function confirmarEdicaoObjeto() {
+  const novoNome = document.getElementById("inputEditarNomeObjeto").value.trim();
+  const erro = document.getElementById("mensagemErroEditarObjeto");
+
+  erro.style.display = "none";
+
+  if (!novoNome) {
+    erro.textContent = "Digite um novo nome.";
+    erro.style.display = "block";
+    return;
+  }
+
+  const projeto = localStorage.getItem("projetoSelecionado");
+  const cena = localStorage.getItem("cenaSelecionada");
+  const chaveCena = `${projeto}_${cena}`;
+
+  const objetosPorCena = JSON.parse(localStorage.getItem("objetosPorCena")) || {};
+  const objetos = objetosPorCena[chaveCena] || [];
+
+  if (objetos.some(o => o.nome === novoNome)) {
+    erro.textContent = "Já existe um objeto com esse nome.";
+    erro.style.display = "block";
+    return;
+  }
+
+  const objeto = objetos.find(o => o.nome === objetoParaEditar);
+  if (objeto) objeto.nome = novoNome;
+  localStorage.setItem("objetosPorCena", JSON.stringify(objetosPorCena));
+
+  const blocosPorCena = JSON.parse(localStorage.getItem("blocosPorCena")) || {};
+  if (blocosPorCena[projeto]?.[cena]?.[objetoParaEditar]) {
+    blocosPorCena[projeto][cena][novoNome] = blocosPorCena[projeto][cena][objetoParaEditar];
+    delete blocosPorCena[projeto][cena][objetoParaEditar];
+    localStorage.setItem("blocosPorCena", JSON.stringify(blocosPorCena));
+  }
+
+  fecharModalEditarObjeto();
+  location.reload();
 }
 
 function criarObjeto() {
@@ -17,7 +71,6 @@ function criarObjeto() {
   const projetoSelecionado = localStorage.getItem("projetoSelecionado");
 
   if (!cenaSelecionada || !projetoSelecionado) {
-    alert("Projeto ou cena não selecionado!");
     return;
   }
 
@@ -73,10 +126,42 @@ function adicionarObjetoNaTela(nome) {
   conteudoEsquerda.appendChild(imagem);
   conteudoEsquerda.appendChild(texto);
 
-  conteudoEsquerda.onclick = () => {
-    localStorage.setItem("objetoSelecionado", nome);
-    window.location.href = "Scripts.html";
-  };
+  // Pressionar e segurar para editar nome
+  conteudoEsquerda.addEventListener("mousedown", () => {
+    tempoPressionado = setTimeout(() => {
+      abrirModalEditarObjeto(nome);
+      tempoPressionado = null;
+    }, 300);
+  });
+
+  conteudoEsquerda.addEventListener("mouseup", () => {
+    clearTimeout(tempoPressionado);
+    tempoPressionado = null;
+  });
+
+  conteudoEsquerda.addEventListener("mouseleave", () => {
+    clearTimeout(tempoPressionado);
+    tempoPressionado = null;
+  });
+
+  conteudoEsquerda.addEventListener("touchstart", () => {
+    tempoPressionado = setTimeout(() => {
+      abrirModalEditarObjeto(nome);
+      tempoPressionado = null;
+    }, 300);
+  });
+
+  conteudoEsquerda.addEventListener("touchend", () => {
+    clearTimeout(tempoPressionado);
+    tempoPressionado = null;
+  });
+
+  conteudoEsquerda.addEventListener("click", () => {
+    if (!tempoPressionado) {
+      localStorage.setItem("objetoSelecionado", nome);
+      window.location.href = "Scripts.html";
+    }
+  });
 
   const botaoExcluir = document.createElement("button");
   botaoExcluir.textContent = "×";
@@ -86,8 +171,8 @@ function adicionarObjetoNaTela(nome) {
     removerObjeto(nome);
   };
 
-  objeto.appendChild(conteudoEsquerda);
-  objeto.appendChild(botaoExcluir);
+objeto.appendChild(conteudoEsquerda);
+objeto.appendChild(botaoExcluir);
   lista.appendChild(objeto);
 }
 
@@ -152,7 +237,6 @@ function executarTodos() {
   const cena = localStorage.getItem("cenaSelecionada");
 
   if (!projeto || !cena) {
-    alert("Projeto ou cena não selecionado!");
     return;
   }
 
@@ -171,6 +255,13 @@ function executarTodos() {
 document.getElementById("inputNomeObjeto").addEventListener("input", () => {
   const input = document.getElementById("inputNomeObjeto");
   const erro = document.getElementById("mensagemErro");
+  input.classList.remove("erro");
+  erro.style.display = "none";
+});
+
+document.getElementById("inputEditarNomeObjeto").addEventListener("input", () => {
+  const input = document.getElementById("inputEditarNomeObjeto");
+  const erro = document.getElementById("mensagemErroEditarObjeto");
   input.classList.remove("erro");
   erro.style.display = "none";
 });

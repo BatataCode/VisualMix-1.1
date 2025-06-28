@@ -51,7 +51,9 @@ function adicionarBloco(tipo, adicionarFimAutomatico = true) {
     "bloco-inicioInstantaneo": "bloco-fimInstantaneo",
     "bloco-toque": "bloco-fimToque",
     "bloco-loopInfinito": "bloco-fimLoopInfinito",
-    "bloco-comentario": "bloco-fimComentario"
+    "bloco-comentario": "bloco-fimComentario",
+    "bloco-toqueNaTela": "bloco-fimToqueNaTela",
+    "bloco-aoCriarClone": "bloco-fimAoCriarClone",
   };
 
   if (blocosComFim[tipoClasse]) {
@@ -75,228 +77,244 @@ bloco.addEventListener("dragend", () => {
   salvarBlocos();
 });
 
-  const blocosSemBotao = ['fimIf', 'fimRepetir', 'fimRepetirAte', 'fimLoopInfinito', 'fimInstantaneo', 'fimToque', 'fimComentario'];
+  const blocosSemBotao = ['fimIf', 'fimRepetir', 'fimRepetirAte', 'fimLoopInfinito', 'fimInstantaneo', 'fimToque', 'fimToqueNaTela', 'fimComentario', 'fimAoCriarClone'];
 if (!blocosSemBotao.includes(tipo)) {
   bloco.innerHTML = `<button class="fechar" onclick="removerBloco(this)">x</button>`;
 }
 
   if (tipo === 'border') {
-    bloco.classList.add('bloco-border');
-    bloco.innerHTML += `
-      <h3>Alterar Borda</h3>
-      <input type="text" placeholder="ID do Elemento (ex: caixa1)" class="id-elemento" />
-      <input type="text" placeholder="Border-Radius (ex: 10px)" class="valor-radius" data-tipo="border" />
-    `;
-  } else if (tipo === 'cor') {
-    bloco.classList.add('bloco-cor');
-    bloco.innerHTML += `
-      <h3>Alterar Cor de Fundo</h3>
-      <input type="text" placeholder="ID do Elemento (ex: caixa1)" class="id-elemento" />
-      <input type="text" placeholder="Cor (ex: blue)" class="valor-radius" data-tipo="cor" />
-    `;
-  } else if (tipo === 'caixa') {
-    bloco.classList.add('bloco-caixa');
-    bloco.innerHTML += `
-      <h3>Criar Nova Caixa</h3>
-      <input type="text" placeholder="ID da Nova Caixa (ex: nova1)" class="id-elemento" />
-      <input type="text" placeholder="Cor de Fundo (ex: pink)" class="valor-radius" data-tipo="caixa" />
-    `;
-  } else if (tipo === 'transparencia') {
-    bloco.classList.add('bloco-transparencia');
-    bloco.innerHTML += `
-      <h3>Definir Transparência</h3>
-      <input type="text" placeholder="ID da Caixa (ex: caixa1)" class="id-elemento" />
-      <input type="text" placeholder="transparência (ex: 50" class="valor-radius" />
-    `;
-  } else if (tipo === 'esperar') {
-    bloco.classList.add('bloco-esperar');
-    bloco.innerHTML += `
-      <h3>Aguardar Segundos</h3>
-      <input type="text" placeholder="Tempo em segundos (ex: 2)" class="valor-radius" data-tipo="esperar" />
-    `;
-  } else if (tipo === 'if') {
-    bloco.classList.add('bloco-if');
-    bloco.innerHTML += `
-      <h3>Se (condição)</h3>
-      <input type="text" placeholder="Digite a condição (ex: 1 > 2)" class="condicao" />
-    `;
-  } else if (tipo === 'fimIf') {
-    bloco.classList.add('bloco-fimIf');
-    bloco.innerHTML += `<h3>Fim Se</h3>`;
-  } else if (tipo === 'inicioInstantaneo') {
-    bloco.classList.add('bloco-inicioInstantaneo');
-    bloco.innerHTML += `<h3>Quando Começar</h3>`;
-  } else if (tipo === 'fimInstantaneo') {
-    bloco.classList.add('bloco-fimInstantaneo');
-    bloco.innerHTML += `<h3>Fim Começar</h3>`;
-  } else if (tipo === 'repetir') {
-    bloco.classList.add('bloco-repetir');
-    bloco.innerHTML += `
-      <h3>Repetir (vezes)</h3>
-      <input type="text" placeholder="Número de vezes (ex: 3)" class="valor-radius" data-tipo="repetir" />
-    `;
-  } else if (tipo === 'fimRepetir') {
-    bloco.classList.add('bloco-fimRepetir');
-    bloco.innerHTML += `<h3>Fim Repetir</h3>`;
-  } else if (tipo === 'criarVariavel') {
-    bloco.classList.add('bloco-criarVariavel');
-    bloco.innerHTML += `
-      <h3>Criar Variável</h3>
-      <input type="text" placeholder="Nome da variável" class="nome-variavel" />
-      <input type="text" placeholder="Valor inicial" class="valor-variavel" />
-    `;
-  } else if (tipo === 'alterarVariavel') {
-    bloco.classList.add('bloco-alterarVariavel');
-    bloco.innerHTML += `
-      <h3>Alterar Variável</h3>
-      <input type="text" placeholder="Nome da variável" class="nome-variavel" />
-      <input type="text" placeholder="Novo valor" class="valor-variavel" />
-    `;
-  } else if (tipo === 'toque') {
-    bloco.classList.add('bloco-toque');
-    bloco.innerHTML += `
-      <h3>Quando Tocar em</h3>
-      <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
-    `;
-  } else if (tipo === 'fimToque') {
-    bloco.classList.add('bloco-fimToque');
-    bloco.innerHTML += `<h3>Fim Tocar</h3>`;
-  } else if (tipo === 'tamanho') {
-    bloco.classList.add('bloco-tamanho');
-    bloco.innerHTML += `
-      <h3>Alterar Tamanho</h3>
-      <input type="text" placeholder="ID do Elemento (ex: caixa1)" class="id-elemento" />
-      <input type="text" placeholder="Largura (ex: 100px)" class="largura-elemento" />
-      <input type="text" placeholder="Altura (ex: 50px)" class="altura-elemento" />
-    `;
-  } else if (tipo === 'texto') {
-    bloco.classList.add('bloco-texto');
-    bloco.innerHTML += `
-      <h3>Mostrar Texto</h3>
-      <input type="text" placeholder="ID do Texto" class="id-elemento" />
-      <input type="text" placeholder="Conteúdo do texto" class="valor-radius" data-tipo="texto" />
-    `;
-  } else if (tipo === 'posicionarCaixa') {
-    bloco.classList.add('bloco-posicionarCaixa');
-    bloco.innerHTML += `
-      <h3>Posicionar Caixa</h3>
-      <input type="text" placeholder="ID da caixa" class="id-elemento" />
-      <input type="text" placeholder="Posição X (ex: 100px)" class="posicao-x" />
-      <input type="text" placeholder="Posição Y (ex: 50px)" class="posicao-y" />
-    `;
-  } else if (tipo === 'posicionarTexto') {
-    bloco.classList.add('bloco-posicionarTexto');
-    bloco.innerHTML += `
-      <h3>Posicionar Texto</h3>
-      <input type="text" placeholder="ID do texto" class="id-elemento" />
-      <input type="text" placeholder="Posição X (ex: 100px)" class="posicao-x" />
-      <input type="text" placeholder="Posição Y (ex: 50px)" class="posicao-y" />
-    `;
-  } else if (tipo === 'repetirAte') {
+  bloco.classList.add('bloco-border');
+  bloco.innerHTML += `
+    <h3>Definir borda</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
+    <input type="text" placeholder="Raio da borda (ex: 10px)" class="valor-radius" data-tipo="border" />
+  `;
+} else if (tipo === 'cor') {
+  bloco.classList.add('bloco-cor');
+  bloco.innerHTML += `
+    <h3>Definir cor</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
+    <input type="text" placeholder="Cor de fundo (ex: blue)" class="valor-radius" data-tipo="cor" />
+  `;
+} else if (tipo === 'caixa') {
+  bloco.classList.add('bloco-caixa');
+  bloco.innerHTML += `
+    <h3>Criar caixa</h3>
+    <input type="text" placeholder="ID da nova caixa (ex: nova1)" class="id-elemento" />
+    <input type="text" placeholder="Cor de fundo (ex: pink)" class="valor-radius" data-tipo="caixa" />
+  `;
+} else if (tipo === 'transparencia') {
+  bloco.classList.add('bloco-transparencia');
+  bloco.innerHTML += `
+    <h3>Definir transparência</h3>
+    <input type="text" placeholder="ID da caixa (ex: caixa1)" class="id-elemento" />
+    <input type="text" placeholder="Transparência em % (ex: 50)" class="valor-radius" />
+  `;
+} else if (tipo === 'esperar') {
+  bloco.classList.add('bloco-esperar');
+  bloco.innerHTML += `
+    <h3>Esperar (segundos)</h3>
+    <input type="text" placeholder="Tempo em segundos (ex: 2)" class="valor-radius" data-tipo="esperar" />
+  `;
+} else if (tipo === 'if') {
+  bloco.classList.add('bloco-if');
+  bloco.innerHTML += `
+    <h3>Se (condição)</h3>
+    <input type="text" placeholder="Digite a condição (ex: x > 10)" class="condicao" />
+  `;
+} else if (tipo === 'fimIf') {
+  bloco.classList.add('bloco-fimIf');
+  bloco.innerHTML += `<h3>Fim do Se</h3>`;
+} else if (tipo === 'inicioInstantaneo') {
+  bloco.classList.add('bloco-inicioInstantaneo');
+  bloco.innerHTML += `<h3>Ao iniciar</h3>`;
+} else if (tipo === 'fimInstantaneo') {
+  bloco.classList.add('bloco-fimInstantaneo');
+  bloco.innerHTML += `<h3>Fim do Início</h3>`;
+} else if (tipo === 'repetir') {
+  bloco.classList.add('bloco-repetir');
+  bloco.innerHTML += `
+    <h3>Repetir (vezes)</h3>
+    <input type="text" placeholder="Número de repetições (ex: 3)" class="valor-radius" data-tipo="repetir" />
+  `;
+} else if (tipo === 'fimRepetir') {
+  bloco.classList.add('bloco-fimRepetir');
+  bloco.innerHTML += `<h3>Fim do Repetir</h3>`;
+} else if (tipo === 'criarVariavel') {
+  bloco.classList.add('bloco-criarVariavel');
+  bloco.innerHTML += `
+    <h3>Criar variável</h3>
+    <input type="text" placeholder="Nome da variável (ex: pontuacao)" class="nome-variavel" />
+    <input type="text" placeholder="Valor inicial (ex: 0)" class="valor-variavel" />
+  `;
+} else if (tipo === 'alterarVariavel') {
+  bloco.classList.add('bloco-alterarVariavel');
+  bloco.innerHTML += `
+    <h3>Alterar variável</h3>
+    <input type="text" placeholder="Nome da variável (ex: pontuacao)" class="nome-variavel" />
+    <input type="text" placeholder="Novo valor (ex: 10)" class="valor-variavel" />
+  `;
+} else if (tipo === 'toque') {
+  bloco.classList.add('bloco-toque');
+  bloco.innerHTML += `
+    <h3>Ao tocar na caixa</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
+  `;
+} else if (tipo === 'fimToque') {
+  bloco.classList.add('bloco-fimToque');
+  bloco.innerHTML += `<h3>Fim do Toque</h3>`;
+} else if (tipo === 'toqueNaTela') {
+  bloco.classList.add('bloco-toqueNaTela');
+  bloco.innerHTML += `<h3>Ao tocar na tela</h3>`;
+} else if (tipo === 'fimToqueNaTela') {
+  bloco.classList.add('bloco-fimToqueNaTela');
+  bloco.innerHTML += `<h3>Fim do Toque na Tela</h3>`;
+} else if (tipo === 'tamanho') {
+  bloco.classList.add('bloco-tamanho');
+  bloco.innerHTML += `
+    <h3>Definir tamanho</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
+    <input type="text" placeholder="Largura (ex: 100px)" class="largura-elemento" />
+    <input type="text" placeholder="Altura (ex: 50px)" class="altura-elemento" />
+  `;
+} else if (tipo === 'texto') {
+  bloco.classList.add('bloco-texto');
+  bloco.innerHTML += `
+    <h3>Mostrar texto</h3>
+    <input type="text" placeholder="ID do texto (ex: texto1)" class="id-elemento" />
+    <input type="text" placeholder="Conteúdo do texto" class="valor-radius" data-tipo="texto" />
+  `;
+} else if (tipo === 'posicionarCaixa') {
+  bloco.classList.add('bloco-posicionarCaixa');
+  bloco.innerHTML += `
+    <h3>Definir posição da caixa</h3>
+    <input type="text" placeholder="ID da caixa (ex: caixa1)" class="id-elemento" />
+    <input type="text" placeholder="Posição X (ex: 100px)" class="posicao-x" />
+    <input type="text" placeholder="Posição Y (ex: 50px)" class="posicao-y" />
+  `;
+} else if (tipo === 'posicionarTexto') {
+  bloco.classList.add('bloco-posicionarTexto');
+  bloco.innerHTML += `
+    <h3>Definir posição do texto</h3>
+    <input type="text" placeholder="ID do texto (ex: texto1)" class="id-elemento" />
+    <input type="text" placeholder="Posição X (ex: 100px)" class="posicao-x" />
+    <input type="text" placeholder="Posição Y (ex: 50px)" class="posicao-y" />
+  `;
+} else if (tipo === 'repetirAte') {
   bloco.classList.add('bloco-repetirAte');
   bloco.innerHTML += `
-    <h3>Repetir até (condição)</h3>
-    <input type="text" placeholder="Digite a condição (ex: 9 > 10)" class="condicao" />
+    <h3>Repetir até</h3>
+    <input type="text" placeholder="Condição para parar (ex: vidas == 0)" class="condicao" />
   `;
 } else if (tipo === 'fimRepetirAte') {
   bloco.classList.add('bloco-fimRepetirAte');
-  bloco.innerHTML += `<h3>Fim Repetir até</h3>`;
+  bloco.innerHTML += `<h3>Fim do Repetir até</h3>`;
 } else if (tipo === 'loopInfinito') {
   bloco.classList.add('bloco-loopInfinito');
-  bloco.innerHTML += `
-    <h3>Repetir Sempre</h3>
-  `;
+  bloco.innerHTML += `<h3>Repetir sempre</h3>`;
 } else if (tipo === 'fimLoopInfinito') {
   bloco.classList.add('bloco-fimLoopInfinito');
-  bloco.innerHTML += `
-    <h3>Fim Repetir Sempre</h3>
-  `;
+  bloco.innerHTML += `<h3>Fim do Repetir sempre</h3>`;
 } else if (tipo === 'mostrar') {
   bloco.classList.add('bloco-mostrar');
   bloco.innerHTML += `
-    <h3>Mostrar Caixa</h3>
-    <input type="text" placeholder="ID da caixa" class="id-elemento" />
+    <h3>Mostrar caixa</h3>
+    <input type="text" placeholder="ID da caixa (ex: caixa1)" class="id-elemento" />
   `;
 } else if (tipo === 'esconder') {
   bloco.classList.add('bloco-esconder');
   bloco.innerHTML += `
-    <h3>Esconder Caixa</h3>
-    <input type="text" placeholder="ID da caixa" class="id-elemento" />
+    <h3>Esconder caixa</h3>
+    <input type="text" placeholder="ID da caixa (ex: caixa1)" class="id-elemento" />
   `;
 } else if (tipo === 'fonteTexto') {
   bloco.classList.add('bloco-fonteTexto');
   bloco.innerHTML += `
-    <h3>Fonte do Texto</h3>
-    <input type="text" placeholder="ID do texto" class="id-elemento" />
-    <input type="text" placeholder="Fonte (ex: Arial)" class="valor-radius" />
+    <h3>Fonte do texto</h3>
+    <input type="text" placeholder="ID do texto (ex: texto1)" class="id-elemento" />
+    <input type="text" placeholder="Nome da fonte (ex: Arial)" class="valor-radius" />
   `;
 } else if (tipo === 'tamanhoFonte') {
   bloco.classList.add('bloco-tamanhoFonte');
   bloco.innerHTML += `
-    <h3>Tamanho do Texto</h3>
-    <input type="text" placeholder="ID do texto" class="id-elemento" />
+    <h3>Tamanho do texto</h3>
+    <input type="text" placeholder="ID do texto (ex: texto1)" class="id-elemento" />
     <input type="text" placeholder="Tamanho da fonte (ex: 20px)" class="valor-radius" />
   `;
 } else if (tipo === 'corTexto') {
   bloco.classList.add('bloco-corTexto');
   bloco.innerHTML += `
-    <h3>Cor do Texto</h3>
-    <input type="text" placeholder="ID do texto" class="id-elemento" />
-    <input type="text" placeholder="Cor (ex: red" class="valor-radius" />
+    <h3>Cor do texto</h3>
+    <input type="text" placeholder="ID do texto (ex: texto1)" class="id-elemento" />
+    <input type="text" placeholder="Cor do texto (ex: red)" class="valor-radius" />
   `;
 } else if (tipo === 'criarLista') {
   bloco.classList.add('bloco-criarLista');
   bloco.innerHTML += `
-    <h3>Criar Lista</h3>
-    <input type="text" placeholder="Nome da lista" class="nome-lista" />
-    <input type="text" placeholder="Valores separados por vírgula" class="valores-lista" />
+    <h3>Criar lista</h3>
+    <input type="text" placeholder="Nome da lista (ex: itens)" class="nome-lista" />
+    <input type="text" placeholder="Valores separados por vírgula (ex: maça, banana)" class="valores-lista" />
   `;
 } else if (tipo === 'adicionarLista') {
   bloco.classList.add('bloco-adicionarLista');
   bloco.innerHTML += `
-    <h3>Adicionar na Lista</h3>
-    <input type="text" placeholder="Nome da lista" class="nome-lista" />
-    <input type="text" placeholder="Valor a adicionar" class="valores-lista" />
+    <h3>Adicionar na lista</h3>
+    <input type="text" placeholder="Nome da lista (ex: itens)" class="nome-lista" />
+    <input type="text" placeholder="Valor a adicionar (ex: laranja)" class="valores-lista" />
   `;
 } else if (tipo === 'removerItemLista') {
   bloco.classList.add('bloco-removerItemLista');
   bloco.innerHTML += `
-    <h3>Remover da Lista</h3>
-    <input type="text" placeholder="Nome da lista" class="nome-lista" />
-    <input type="text" placeholder="Índice ou valor" class="valores-lista" />
+    <h3>Remover da lista</h3>
+    <input type="text" placeholder="Nome da lista (ex: itens)" class="nome-lista" />
+    <input type="text" placeholder="Índice ou valor para remover (ex: 2 ou laranja)" class="valores-lista" />
   `;
 } else if (tipo === 'limparLista') {
   bloco.classList.add('bloco-limparLista');
   bloco.innerHTML += `
-    <h3>Limpar Lista</h3>
-    <input type="text" placeholder="Nome da lista" class="nome-lista" />
+    <h3>Limpar lista</h3>
+    <input type="text" placeholder="Nome da lista (ex: itens)" class="nome-lista" />
+  `;
+} else if (tipo === 'gravidade') {
+  bloco.classList.add('bloco-gravidade');
+  bloco.innerHTML += `
+    <h3>Aplicar gravidade</h3>
+    <input type="text" placeholder="ID da caixa (ex: jogador)" class="id-elemento" />
+    <input type="text" placeholder="Força da gravidade (ex: -0.5)" class="valor-radius" />
+  `;
+} else if (tipo === 'pular') {
+  bloco.classList.add('bloco-pular');
+  bloco.innerHTML += `
+    <h3>Pular</h3>
+    <input type="text" placeholder="ID da caixa (ex: jogador)" class="id-elemento" />
+    <input type="text" placeholder="Força do pulo (ex: 12)" class="valor-radius" />
   `;
 } else if (tipo === 'mover') {
   bloco.classList.add('bloco-mover');
   bloco.innerHTML += `
-    <h3>Mover Passos</h3>
-    <input type="text" placeholder="ID da caixa" class="id-elemento" />
-    <input type="text" placeholder="Passos a mover" class="valor-radius" />
+    <h3>Mover (passos)</h3>
+    <input type="text" placeholder="ID da caixa (ex: jogador)" class="id-elemento" />
+    <input type="text" placeholder="Número de passos a mover (ex: 10)" class="valor-radius" />
   `;
 } else if (tipo === 'direcao') {
   bloco.classList.add('bloco-direcao');
   bloco.innerHTML += `
-    <h3>Definir Direção</h3>
-    <input type="text" placeholder="ID da caixa" class="id-elemento" />
+    <h3>Definir direção</h3>
+    <input type="text" placeholder="ID da caixa (ex: jogador)" class="id-elemento" />
     <input type="text" placeholder="Graus (ex: 90)" class="valor-radius" />
   `;
 } else if (tipo === 'camada') {
   bloco.classList.add('bloco-camada');
   bloco.innerHTML += `
-    <h3>Alterar Camada</h3>
-    <input type="text" placeholder="ID do Elemento (ex: caixa1)" class="id-elemento" />
-    <input type="text" placeholder="Camada (ex: 5)" class="valor-radius" data-tipo="camada" />
+    <h3>Definir camada</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
+    <input type="text" placeholder="Número da camada (ex: 5)" class="valor-radius" data-tipo="camada" />
   `;
 } else if (tipo === 'remover') {
   bloco.classList.add('bloco-remover');
   bloco.innerHTML += `
-    <h3>Remover Caixa</h3>
-    <input type="text" placeholder="ID do Elemento (ex: caixa1)" class="id-elemento" />
+    <h3>Remover caixa</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
   `;
 } else if (tipo === 'comentario') {
   bloco.classList.add('bloco-comentario');
@@ -309,64 +327,101 @@ if (!blocosSemBotao.includes(tipo)) {
   `;
 } else if (tipo === 'fimComentario') {
   bloco.classList.add('bloco-fimComentario');
-  bloco.innerHTML += `<h3>Fim Comentário</h3>
-  `;
+  bloco.innerHTML += `<h3>Fim do comentário</h3>`;
 } else if (tipo === 'textura') {
   bloco.classList.add('bloco-textura');
   bloco.innerHTML += `
-    <h3>Definir Textura</h3>
-    <input type="text" placeholder="ID do Elemento (ex: caixa1)" class="id-elemento" />
-    <input type="text" placeholder="Id Da Imagem" class="valor-radius" />
+    <h3>Definir imagem</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
+    <input type="text" placeholder="ID da imagem (ex: img1)" class="valor-radius" />
   `;
 } else if (tipo === 'criarAnimacao') {
   bloco.classList.add('bloco-criarAnimacao');
   bloco.innerHTML += `
-    <h3>Criar Animação</h3>
-    <input type="text" placeholder="ID do Elemento (ex: caixa1)" class="id-elemento" />
-    <input type="text" placeholder="imagem1.png, imagem2.png" class="valor-imagens" />
-    <input type="text" placeholder="velocidade de quadros (ex: 5)" class="valor-velocidade" />
+    <h3>Criar animação</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
+    <input type="text" placeholder="Lista de imagens (ex: img1.png, img2.png)" class="valor-imagens" />
+    <input type="text" placeholder="Velocidade da animação (ex: 5)" class="valor-velocidade" />
   `;
 } else if (tipo === 'pararAnimacao') {
   bloco.classList.add('bloco-pararAnimacao');
   bloco.innerHTML += `
-    <h3>Parar Animação</h3>
-    <input type="text" placeholder="ID do Elemento (ex: caixa1)" class="id-elemento" />
+    <h3>Parar animação</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
   `;
 } else if (tipo === 'continuarAnimacao') {
   bloco.classList.add('bloco-continuarAnimacao');
   bloco.innerHTML += `
-    <h3>Continuar Animação</h3>
-    <input type="text" placeholder="ID do Elemento (ex: caixa1)" class="id-elemento" />
+    <h3>Continuar animação</h3>
+    <input type="text" placeholder="ID do elemento (ex: caixa1)" class="id-elemento" />
   `;
 } else if (tipo === 'camera') {
   bloco.classList.add('bloco-camera');
   bloco.innerHTML += `
-    <h3>Adicionar Camera</h3>
-    <input type="text" placeholder="ID da Caixa" class="id-elemento" />
+    <h3>Ativar câmera</h3>
+    <input type="text" placeholder="ID da caixa (ex: caixa1)" class="id-elemento" />
   `;
 } else if (tipo === 'fixarCaixa') {
   bloco.classList.add('bloco-fixarCaixa');
   bloco.innerHTML += `
-    <h3>Fixar Caixa</h3>
-    <input type="text" placeholder="ID da Caixa" class="id-elemento" />
+    <h3>Fixar na câmera</h3>
+    <input type="text" placeholder="ID da caixa (ex: caixa1)" class="id-elemento" />
   `;
 } else if (tipo === 'suavidadeCamera') {
   bloco.classList.add('bloco-suavidadeCamera');
   bloco.innerHTML += `
-    <h3>Definir Suavidade</h3>
-    <input type="text" placeholder="Suavidade (0.05)" class="valor-radius" />
+    <h3>Definir suavidade da câmera</h3>
+    <input type="text" placeholder="Valor da suavidade (ex: 0.05)" class="valor-radius" />
   `;
 } else if (tipo === 'mudarCena') {
   bloco.classList.add('bloco-mudarCena');
   bloco.innerHTML += `
-    <h3>Trocar De Cena</h3>
-    <input type="text" placeholder="Id da Cena" class="id-elemento" />
+    <h3>Mudar de cena</h3>
+    <input type="text" placeholder="ID da cena (ex: cena1)" class="id-elemento" />
   `;
 } else if (tipo === 'orientacao') {
   bloco.classList.add('bloco-orientacao');
   bloco.innerHTML += `
-    <h3>Definir Orientação</h3>
-    <input type="text" placeholder="Retrato/Paisagem" class="valor-radius" />
+    <h3>Definir orientação da tela</h3>
+    <input type="text" placeholder="Retrato ou Paisagem" class="valor-radius" />
+  `;
+} else if (tipo === 'colisaoSolida') {
+  bloco.classList.add('bloco-colisaoSolida');
+  bloco.innerHTML += `
+    <h3>Habilitar colisão sólida</h3>
+    <input type="text" placeholder="ID do objeto (ex: jogador)" class="id-elemento" />
+    <input type="text" placeholder="ID do alvo (ex: chão)" class="id-alvo" />
+  `;
+} else if (tipo === 'clonar') {
+  bloco.classList.add('bloco-clonar');
+  bloco.innerHTML += `
+    <h3>Clonar caixa</h3>
+    <input type="text" placeholder="ID da caixa a clonar (ex: inimigo1)" class="id-elemento" />
+  `;
+} else if (tipo === 'aoCriarClone') {
+  bloco.classList.add('bloco-aoCriarClone');
+  bloco.innerHTML += `
+    <h3>Ao criar clone</h3>
+    <input type="text" placeholder="ID do original (ex: inimigo)" class="id-elemento" />
+  `;
+} else if (tipo === 'fimAoCriarClone') {
+  bloco.classList.add('bloco-fimAoCriarClone');
+  bloco.innerHTML += `<h3>Fim do Ao criar clone</h3>`;
+} else if (tipo === 'carimbo') {
+  bloco.classList.add('bloco-carimbo');
+  bloco.innerHTML += `
+    <h3>Carimbar caixa</h3>
+    <input type="text" placeholder="ID da caixa (ex: inimigo1)" class="id-elemento" />
+  `;
+} else if (tipo === 'limparCarimbos') {
+  bloco.classList.add('bloco-limparCarimbos');
+  bloco.innerHTML += `<h3>Limpar carimbos</h3>`;
+} else if (tipo === 'efeito') {
+  bloco.classList.add('bloco-efeito');
+  bloco.innerHTML += `
+    <h3>Aplicar efeito</h3>
+    <input type="text" placeholder="ID da caixa (ex: caixa1)" class="id-elemento" />
+    <input type="text" placeholder="Tipo do efeito (ex: fantasma, blur, brilho)" class="valor-radius" />
   `;
 }
 
@@ -391,7 +446,7 @@ if (!blocosSemBotao.includes(tipo)) {
   area.appendChild(bloco);  
   
  // Adiciona o bloco "fim" automaticamente se necessário  
-if (adicionarFimAutomatico && ['if', 'repetir', 'inicioInstantaneo', 'toque', 'repetirAte', 'loopInfinito', 'comentario'].includes(tipo)) {  
+if (adicionarFimAutomatico && ['if', 'repetir', 'inicioInstantaneo', 'toque', 'toqueNaTela', 'repetirAte', 'loopInfinito', 'comentario', 'aoCriarClone'].includes(tipo)) {
   const blocoFim = document.createElement("div");  
   blocoFim.className = "bloco";  
   blocoFim.draggable = true;  
@@ -418,15 +473,21 @@ if (adicionarFimAutomatico && ['if', 'repetir', 'inicioInstantaneo', 'toque', 'r
   } else if (tipo === 'toque') {  
     tipoFim = 'fimToque';  
     titulo = 'Fim Tocar';  
+  } else if (tipo === 'toqueNaTela') {
+    tipoFim = 'fimToqueNaTela';
+    titulo = 'Fim Tocar na Tela';
   } else if (tipo === 'comentario') {
     tipoFim = 'fimComentario';
     titulo = 'Fim Comentário';
+  } else if (tipo === 'aoCriarClone') {
+    tipoFim = 'fimAoCriarClone';
+    titulo = 'Fim Criar Clone';
   }
   
   blocoFim.classList.add(`bloco-${tipoFim}`);  
   
   // Só adiciona botão "x" se NÃO for bloco de fim  
-  const blocosSemX = ['fimIf', 'fimRepetir', 'fimRepetirAte', 'fimLoopInfinito', 'fimInstantaneo', 'fimToque', 'fimComentario'];  
+  const blocosSemX = ['fimIf', 'fimRepetir', 'fimRepetirAte', 'fimLoopInfinito', 'fimInstantaneo', 'fimToque', 'fimToqueNaTela', 'fimComentario', 'fimAoCriarClone'];  
   if (!blocosSemX.includes(tipoFim)) {  
     blocoFim.innerHTML = `<button class="fechar" onclick="removerBloco(this)">x</button>`;  
   }  
@@ -441,7 +502,7 @@ if (adicionarFimAutomatico && ['if', 'repetir', 'inicioInstantaneo', 'toque', 'r
 
   // Verificar se é bloco pai que contém blocos filhos
   const tipoClasse = [...bloco.classList].find(c => c.startsWith("bloco-"));
-  const blocosPais = ['bloco-if', 'bloco-repetir', 'bloco-repetirAte', 'bloco-loopInfinito', 'bloco-inicioInstantaneo', 'bloco-toque', 'bloco-comentario'];
+  const blocosPais = ['bloco-if', 'bloco-repetir', 'bloco-repetirAte', 'bloco-loopInfinito', 'bloco-inicioInstantaneo', 'bloco-toque', 'bloco-toqueNaTela', 'bloco-comentario', 'bloco-aoCriarClone'];
   
   if (blocosPais.includes(tipoClasse)) {
     // Pegar todos blocos filhos até o bloco fim correspondente
@@ -456,7 +517,9 @@ if (adicionarFimAutomatico && ['if', 'repetir', 'inicioInstantaneo', 'toque', 'r
     else if (tipoClasse === "bloco-loopInfinito") tipoFim = "bloco-fimLoopInfinito";
     else if (tipoClasse === "bloco-inicioInstantaneo") tipoFim = "bloco-fimInstantaneo";
     else if (tipoClasse === "bloco-toque") tipoFim = "bloco-fimToque";
+    else if (tipoClasse === "bloco-toqueNaTela") tipoFim = "bloco-fimToqueNaTela";
     else if (tipoClasse === "bloco-comentario") tipoFim = "bloco-fimComentario";
+    else if (tipoClasse === "bloco-aoCriarClone") tipoFim = "bloco-fimAoCriarClone";
 
     let profundidade = 1;
     blocosArrastandoGrupo = [bloco];
@@ -517,7 +580,9 @@ function removerBloco(botao) {
   else if (tipoClasse === "bloco-loopInfinito") fimTipo = "bloco-fimLoopInfinito";
   else if (tipoClasse === "bloco-inicioInstantaneo") fimTipo = "bloco-fimInstantaneo";
   else if (tipoClasse === "bloco-toque") fimTipo = "bloco-fimToque";
+  else if (tipoClasse === "bloco-toqueNaTela") fimTipo = "bloco-fimToqueNaTela";
   else if (tipoClasse === "bloco-comentario") fimTipo = "bloco-fimComentario";
+  else if (tipoClasse === "bloco-aoCriarClone") fimTipo = "bloco-fimAoCriarClone";
 
   // Se for bloco com estrutura de filhos, remover todos os filhos também
   if (fimTipo) {
@@ -641,6 +706,8 @@ function salvarBlocos() {
     else if (bloco.classList.contains("bloco-alterarVariavel")) tipo = "alterarVariavel";
     else if (bloco.classList.contains("bloco-toque")) tipo = "toque";
     else if (bloco.classList.contains("bloco-fimToque")) tipo = "fimToque";
+    else if (bloco.classList.contains("bloco-toqueNaTela")) tipo = "toqueNaTela";
+else if (bloco.classList.contains("bloco-fimToqueNaTela")) tipo = "fimToqueNaTela";
     else if (bloco.classList.contains("bloco-tamanho")) tipo = "tamanho";
     else if (bloco.classList.contains("bloco-texto")) tipo = "texto";
     else if (bloco.classList.contains("bloco-fonteTexto")) tipo = "fonteTexto";
@@ -653,6 +720,8 @@ function salvarBlocos() {
     else if (bloco.classList.contains("bloco-tamanhoFonte")) tipo = "tamanhoFonte";
     else if (bloco.classList.contains("bloco-corTexto")) tipo = "corTexto";
     else if (bloco.classList.contains("bloco-criarLista")) tipo = "criarLista";
+    else if (bloco.classList.contains("bloco-gravidade")) tipo = "gravidade";
+    else if (bloco.classList.contains("bloco-pular")) tipo = "pular";
     else if (bloco.classList.contains("bloco-mover")) tipo = "mover";
     else if (bloco.classList.contains("bloco-direcao")) tipo = "direcao";
     else if (bloco.classList.contains("bloco-camada")) tipo = "camada";
@@ -672,8 +741,16 @@ function salvarBlocos() {
     else if (bloco.classList.contains("bloco-pararAnimacao")) tipo = "pararAnimacao";
     else if (bloco.classList.contains("bloco-continuarAnimacao")) tipo = "continuarAnimacao";
     else if (bloco.classList.contains("bloco-transparencia")) tipo = "transparencia";
+    else if (bloco.classList.contains("bloco-colisaoSolida")) tipo = "colisaoSolida";
+    else if (bloco.classList.contains("bloco-clonar")) tipo = "clonar";
+    else if (bloco.classList.contains("bloco-aoCriarClone")) tipo = "aoCriarClone";
+    else if (bloco.classList.contains("bloco-fimAoCriarClone")) tipo = "fimAoCriarClone";
+    else if (bloco.classList.contains("bloco-carimbo")) tipo = "carimbo";
+    else if (bloco.classList.contains("bloco-limparCarimbos")) tipo = "limparCarimbos";
+    else if (bloco.classList.contains("bloco-efeito")) tipo = "efeito";
 
     const idElemento = bloco.querySelector(".id-elemento")?.value || '';
+    const idAlvo = bloco.querySelector(".id-alvo")?.value || '';
     const valor = bloco.querySelector(".valor-radius")?.value || '';
     const condicao = bloco.querySelector(".condicao")?.value || '';
     const nomeVariavel = bloco.querySelector(".nome-variavel")?.value || '';
@@ -689,22 +766,23 @@ function salvarBlocos() {
     const valorVelocidade = bloco.querySelector(".valor-velocidade")?.value || '';
 
     dados.push({
-      tipo,
-      idElemento,
-      valor,
-      condicao,
-      nomeVariavel,
-      valorVariavel,
-      larguraElemento,
-      alturaElemento,
-      posicaoX,
-      posicaoY,
-      nomeLista,
-      valoresLista,
-      comentarioOculto,
-      valorImagens,
-      valorVelocidade
-    });
+  tipo,
+  idElemento,
+  idAlvo,
+  valor,
+  condicao,
+  nomeVariavel,
+  valorVariavel,
+  larguraElemento,
+  alturaElemento,
+  posicaoX,
+  posicaoY,
+  nomeLista,
+  valoresLista,
+  comentarioOculto,
+  valorImagens,
+  valorVelocidade
+});
   });
 
   const blocosPorCena = JSON.parse(localStorage.getItem("blocosPorCena")) || {};
@@ -727,7 +805,24 @@ function carregarBlocos() {
 
   if (!dados) return;
 
-  dados.forEach(({ tipo, idElemento, valor, condicao, nomeVariavel, valorVariavel, larguraElemento, alturaElemento, posicaoX, posicaoY, nomeLista, valoresLista, comentarioOculto, valorImagens, valorVelocidade }) => {
+  dados.forEach(({ 
+  tipo,
+  idElemento,
+  idAlvo,
+  valor,
+  condicao,
+  nomeVariavel,
+  valorVariavel,
+  larguraElemento,
+  alturaElemento,
+  posicaoX,
+  posicaoY,
+  nomeLista,
+  valoresLista,
+  comentarioOculto,
+  valorImagens,
+  valorVelocidade
+}) => {
     adicionarBloco(tipo, false);
 
     const blocos = document.querySelectorAll("#area-blocos .bloco");
@@ -741,9 +836,11 @@ function carregarBlocos() {
 
       const inputId = ultimoBloco.querySelector(".id-elemento");
       const inputValor = ultimoBloco.querySelector(".valor-radius");
+      const inputAlvo = ultimoBloco.querySelector(".id-alvo");
 
       if (inputId) inputId.value = idElemento;
       if (inputValor) inputValor.value = valor;
+      if (inputAlvo) inputAlvo.value = idAlvo;
 
       if (tipo === 'criarVariavel' || tipo === 'alterarVariavel') {
         const inputNome = ultimoBloco.querySelector(".nome-variavel");
@@ -975,7 +1072,6 @@ window.addEventListener("load", () => {
   }
 });
 
-
 document.getElementById("botaoCopiarBloco").addEventListener("click", () => {  
   // Alterna entre true e false  
   modoCopiaAtivo = !modoCopiaAtivo;  
@@ -998,7 +1094,9 @@ const blocosFim = [
   "bloco-fimLoopInfinito",
   "bloco-fimInstantaneo",
   "bloco-fimToque",
-  "bloco-fimComentario"
+  "bloco-fimToqueNaTela",
+  "bloco-fimComentario",
+  "bloco-fimAoCriarClone"
 ];
 
 document.addEventListener("click", (e) => {
@@ -1025,8 +1123,10 @@ document.addEventListener("click", (e) => {
     "bloco-repetirAte": "bloco-fimRepetirAte",
     "bloco-inicioInstantaneo": "bloco-fimInstantaneo",
     "bloco-toque": "bloco-fimToque",
+    "bloco-toqueNaTela": "bloco-fimToqueNaTela",
     "bloco-loopInfinito": "bloco-fimLoopInfinito",
-    "bloco-comentario": "bloco-fimComentario"
+    "bloco-comentario": "bloco-fimComentario",
+    "bloco-aoCriarClone": "bloco-fimAoCriarClone"
   };
 
   let grupoParaCopiar = [blocoSelecionado];
@@ -1085,8 +1185,10 @@ function configurarBloco(bloco) {
       "bloco-repetirAte": "bloco-fimRepetirAte",
       "bloco-inicioInstantaneo": "bloco-fimInstantaneo",
       "bloco-toque": "bloco-fimToque",
+      "bloco-toqueNaTela": "bloco-fimToqueNaTela",
       "bloco-loopInfinito": "bloco-fimLoopInfinito",
-      "bloco-comentario": "bloco-fimComentario"
+      "bloco-comentario": "bloco-fimComentario",
+      "bloco-aoCriarClone": "bloco-fimAoCriarClone"
     };
 
     if (blocosComFim[tipoClasse]) {

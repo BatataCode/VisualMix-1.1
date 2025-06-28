@@ -1,11 +1,82 @@
 AndroidInterface.changeOrientation('portrait');
 
-function abrirModal() {
-  document.getElementById("modalCriarCenas").style.display = "flex";
+let cenaParaEditar = null;
+let tempoPressionado = null;
+
+function abrirModal() { 
+document.getElementById("modalCriarCenas").style.display = "flex";
 }
 
-function fecharModal() {
-  document.getElementById("modalCriarCenas").style.display = "none";
+function fecharModal() { 
+document.getElementById("modalCriarCenas").style.display = "none";
+}
+
+function abrirModalEditarCena(nomeAntigo) {
+  cenaParaEditar = nomeAntigo;
+  document.getElementById("inputEditarNomeCena").value = nomeAntigo;
+  document.getElementById("modalEditarCena").style.display = "flex";
+}
+
+function fecharModalEditarCena() {
+  document.getElementById("modalEditarCena").style.display = "none";
+  cenaParaEditar = null;
+}
+
+function confirmarEdicaoCena() {
+  const novoNome = document.getElementById("inputEditarNomeCena").value.trim();
+  const erro = document.getElementById("mensagemErroEditarCena");
+
+  erro.style.display = "none";
+
+  if (!novoNome) {
+    erro.textContent = "Digite um novo nome.";
+    erro.style.display = "block";
+    return;
+  }
+
+  const projeto = localStorage.getItem("projetoSelecionado");
+  const cenasPorProjeto = JSON.parse(localStorage.getItem("cenasPorProjeto")) || {};
+  const cenas = cenasPorProjeto[projeto] || [];
+
+  if (cenas.some(c => c.nome === novoNome)) {
+    erro.textContent = "Já existe uma cena com esse nome.";
+    erro.style.display = "block";
+    return;
+  }
+
+  // Atualiza nome
+  const cena = cenas.find(c => c.nome === cenaParaEditar);
+  if (cena) cena.nome = novoNome;
+  localStorage.setItem("cenasPorProjeto", JSON.stringify(cenasPorProjeto));
+
+  // Atualizar objetos
+  const objetosPorCena = JSON.parse(localStorage.getItem("objetosPorCena")) || {};
+  const chaveAntiga = `${projeto}_${cenaParaEditar}`;
+  const chaveNova = `${projeto}_${novoNome}`;
+  if (objetosPorCena[chaveAntiga]) {
+    objetosPorCena[chaveNova] = objetosPorCena[chaveAntiga];
+    delete objetosPorCena[chaveAntiga];
+    localStorage.setItem("objetosPorCena", JSON.stringify(objetosPorCena));
+  }
+
+  // Atualizar blocos
+  const blocosPorCena = JSON.parse(localStorage.getItem("blocosPorCena")) || {};
+  if (blocosPorCena[projeto]?.[cenaParaEditar]) {
+    blocosPorCena[projeto][novoNome] = blocosPorCena[projeto][cenaParaEditar];
+    delete blocosPorCena[projeto][cenaParaEditar];
+    localStorage.setItem("blocosPorCena", JSON.stringify(blocosPorCena));
+  }
+
+  // Atualizar imagens
+  const chaveImgAntiga = `imagens_${projeto}_${cenaParaEditar}`;
+  const chaveImgNova = `imagens_${projeto}_${novoNome}`;
+  if (localStorage.getItem(chaveImgAntiga)) {
+    localStorage.setItem(chaveImgNova, localStorage.getItem(chaveImgAntiga));
+    localStorage.removeItem(chaveImgAntiga);
+  }
+
+  fecharModalEditarCena();
+  location.reload(); // Recarrega a lista
 }
 
 function criarCena() {
@@ -67,10 +138,42 @@ function adicionarCenaNaTela(nome) {
   conteudoEsquerda.appendChild(imagem);
   conteudoEsquerda.appendChild(texto);
 
-  conteudoEsquerda.onclick = () => {
-    localStorage.setItem("cenaSelecionada", nome);
-    window.location.href = "Objetos.html";
-  };
+  // Pressionar e segurar para editar nome
+  conteudoEsquerda.addEventListener("mousedown", () => {
+    tempoPressionado = setTimeout(() => {
+      abrirModalEditarCena(nome);
+      tempoPressionado = null;
+    }, 300);
+  });
+
+  conteudoEsquerda.addEventListener("mouseup", () => {
+    clearTimeout(tempoPressionado);
+    tempoPressionado = null;
+  });
+
+  conteudoEsquerda.addEventListener("mouseleave", () => {
+    clearTimeout(tempoPressionado);
+    tempoPressionado = null;
+  });
+
+  conteudoEsquerda.addEventListener("touchstart", () => {
+    tempoPressionado = setTimeout(() => {
+      abrirModalEditarCena(nome);
+      tempoPressionado = null;
+    }, 300);
+  });
+
+  conteudoEsquerda.addEventListener("touchend", () => {
+    clearTimeout(tempoPressionado);
+    tempoPressionado = null;
+  });
+
+  conteudoEsquerda.addEventListener("click", () => {
+    if (!tempoPressionado) {
+      localStorage.setItem("cenaSelecionada", nome);
+      window.location.href = "Objetos.html";
+    }
+  });
 
   const botaoExcluir = document.createElement("button");
   botaoExcluir.textContent = "×";
@@ -180,6 +283,13 @@ function executarTodos() {
 document.getElementById("inputNomeCena").addEventListener("input", () => {
   const input = document.getElementById("inputNomeCena");
   const erro = document.getElementById("mensagemErro");
+  input.classList.remove("erro");
+  erro.style.display = "none";
+});
+
+document.getElementById("inputEditarNomeCena").addEventListener("input", () => {
+  const input = document.getElementById("inputEditarNomeCena");
+  const erro = document.getElementById("mensagemErroEditarCena");
   input.classList.remove("erro");
   erro.style.display = "none";
 });

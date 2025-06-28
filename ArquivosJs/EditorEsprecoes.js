@@ -143,10 +143,12 @@ function coletarSugestoesDosBlocos() {
   sugestoes.add("colisao('caixa1', 'caixa2')");
   sugestoes.add("toqueX");
   sugestoes.add("toqueY");
-  sugestoes.add("toque_caixa1");
+  sugestoes.add("tocando_caixa1");
   sugestoes.add("posX('caixa1')");
   sugestoes.add("posY('caixa1')");
   sugestoes.add("comprimento");
+  sugestoes.add("direcao('caixa1')");
+  sugestoes.add("apontarPara('caixa1', 'alvo1')");
 
   return sugestoes;
 }
@@ -245,48 +247,43 @@ function abrirModalImagensSalvas(aoSelecionar) {
   container.innerHTML = "";
 
   imagens.forEach(({ nome, src }) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "imagemWrapper";
+
     const img = document.createElement("img");
     img.src = src;
     img.title = nome;
-    img.style.width = "80px";
-    img.style.height = "80px";
-    img.style.objectFit = "cover";
-    img.style.borderRadius = "8px";
-    img.style.cursor = "pointer";
-    img.style.border = "2px solid transparent";
-    img.style.margin = "5px";
+    img.className = "imagemMiniatura";
 
-    let ultimoToque = 0;
-
-    // 🔹 Clique simples → copiar nome
+    // Clique simples → copiar nome
     img.addEventListener("click", () => {
       navigator.clipboard.writeText(nome);
     });
 
-    // 🔹 Duplo clique (PC)
-    img.addEventListener("dblclick", () => {
-      excluirImagem(nome);
-    });
-
-    // 🔹 Duplo toque (mobile)
-    img.addEventListener("touchend", () => {
-      const agora = Date.now();
-      if (agora - ultimoToque < 300) {
-        excluirImagem(nome);
-        ultimoToque = 0;
-      } else {
-        ultimoToque = agora;
-      }
-    });
-
-    // 🔹 Hover
+    // Hover (visualmente mantém destaque)
     img.onmouseover = () => img.style.border = "2px solid #4caf50";
     img.onmouseout = () => img.style.border = "2px solid transparent";
 
-    container.appendChild(img);
+    // Botão de excluir
+    const botaoExcluir = document.createElement("button");
+    botaoExcluir.textContent = "✖";
+    botaoExcluir.className = "botaoExcluirImagem";
+    botaoExcluir.onclick = (e) => {
+      e.stopPropagation(); // Impede que o clique propague para img
+      excluirImagem(nome);
+    };
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(botaoExcluir);
+    container.appendChild(wrapper);
   });
 
   modal.style.display = "flex";
+}
+
+function fecharModalImagens() {
+  document.getElementById("modalImagens").style.display = "none";
+  window._callbackImagemSelecionada = null;
 }
 
 function excluirImagem(nomeImagem) {
@@ -301,15 +298,12 @@ function excluirImagem(nomeImagem) {
     imagens = [];
   }
 
+  // Remove a imagem pelo nome
   imagens = imagens.filter(img => img.nome !== nomeImagem);
   localStorage.setItem(chave, JSON.stringify(imagens));
 
+  // Reabre o modal com a lista atualizada
   abrirModalImagensSalvas(window._callbackImagemSelecionada);
-}
-
-function fecharModalImagens() {
-  document.getElementById("modalImagens").style.display = "none";
-  window._callbackImagemSelecionada = null;
 }
 
 function salvarNovaImagem(event) {
@@ -340,7 +334,6 @@ function salvarNovaImagem(event) {
     // 🔒 Evita nomes duplicados
     const existe = imagens.some(img => img.nome === file.name);
     if (existe) {
-      alert("Uma imagem com esse nome já foi adicionada.");
       return;
     }
 
@@ -361,3 +354,10 @@ function abrirSeletorDeImagens() {
     }
   });
 }
+
+const botoes = document.getElementById('AreaTodosBotoes');
+const toggle = document.getElementById('toggleBotoes');
+
+toggle.addEventListener('click', () => {
+  botoes.classList.toggle('escondido');
+});

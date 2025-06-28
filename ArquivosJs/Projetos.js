@@ -1,6 +1,8 @@
 AndroidInterface.changeOrientation('portrait');
 
 let nomeProjetoTemp = "";
+let projetoParaEditar = null;
+let tempoPressionado = null;
 
 function abrirModal() {
   document.getElementById("modalCriarProjetos").style.display = "flex";
@@ -8,7 +10,6 @@ function abrirModal() {
 
 function fecharModal() {
   document.getElementById("modalCriarProjetos").style.display = "none";
-  document.getElementById("inputNomeProjeto").value = "";
 }
 
 function abrirModalExportar() {
@@ -22,6 +23,79 @@ function fecharModalExportar() {
 function fecharModalOrientacao() {
   document.getElementById("modalOrientacaoDoProjeto").style.display = "none";
   document.getElementById("inputNomeProjeto").value = "";
+}
+
+function abrirModalEditarProjeto(nomeAntigo) {
+  projetoParaEditar = nomeAntigo;
+  document.getElementById("inputEditarNomeProjeto").value = nomeAntigo;
+  document.getElementById("modalEditarProjeto").style.display = "flex";
+}
+
+function fecharModalEditarProjeto() {
+  document.getElementById("modalEditarProjeto").style.display = "none";
+  projetoParaEditar = null;
+}
+
+function confirmarEdicaoNome() {
+  const novoNome = document.getElementById("inputEditarNomeProjeto").value.trim();
+  const erro = document.getElementById("mensagemErroEditar");
+
+  erro.style.display = "none";
+
+  if (!novoNome) {
+    erro.textContent = "Digite um novo nome.";
+    erro.style.display = "block";
+    return;
+  }
+
+  const projetos = JSON.parse(localStorage.getItem("projetos")) || [];
+  const existe = projetos.some(p => p.nome === novoNome);
+
+  if (existe) {
+    erro.textContent = "Já existe um projeto com esse nome.";
+    erro.style.display = "block";
+    return;
+  }
+
+  // Atualizar nome no array de projetos
+  const projeto = projetos.find(p => p.nome === projetoParaEditar);
+  if (projeto) projeto.nome = novoNome;
+  localStorage.setItem("projetos", JSON.stringify(projetos));
+
+  // Atualizar blocos, cenas e objetos
+  const atualizarChave = (obj, prefixo) => {
+    const novo = {};
+    for (const chave in obj) {
+      if (chave.startsWith(projetoParaEditar)) {
+        const novaChave = chave.replace(projetoParaEditar, novoNome);
+        novo[novaChave] = obj[chave];
+      } else {
+        novo[chave] = obj[chave];
+      }
+    }
+    localStorage.setItem(prefixo, JSON.stringify(novo));
+  };
+
+  atualizarChave(JSON.parse(localStorage.getItem("objetosPorCena")) || {}, "objetosPorCena");
+  atualizarChave(JSON.parse(localStorage.getItem("blocosPorCena")) || {}, "blocosPorCena");
+
+  const cenas = JSON.parse(localStorage.getItem("cenasPorProjeto")) || {};
+  cenas[novoNome] = cenas[projetoParaEditar];
+  delete cenas[projetoParaEditar];
+  localStorage.setItem("cenasPorProjeto", JSON.stringify(cenas));
+
+  // Atualizar imagens (nomes de chaves)
+  const keys = Object.keys(localStorage);
+  keys.forEach(k => {
+    if (k.startsWith(`imagens_${projetoParaEditar}_`)) {
+      const novoK = k.replace(`imagens_${projetoParaEditar}_`, `imagens_${novoNome}_`);
+      localStorage.setItem(novoK, localStorage.getItem(k));
+      localStorage.removeItem(k);
+    }
+  });
+
+  fecharModalEditarProjeto();
+  location.reload(); // recarrega a lista
 }
 
 function criarProjeto() {
@@ -90,10 +164,42 @@ function adicionarProjetoNaTela(nome) {
   conteudoEsquerda.appendChild(imagem);
   conteudoEsquerda.appendChild(texto);
 
-  conteudoEsquerda.onclick = () => {
-    localStorage.setItem("projetoSelecionado", nome);
-    window.location.href = "Cenas.html";
-  };
+  // Detecção de toque longo (3 segundos)
+  conteudoEsquerda.addEventListener("mousedown", (e) => {
+    tempoPressionado = setTimeout(() => {
+      abrirModalEditarProjeto(nome);
+      tempoPressionado = null;
+    }, 300);
+  });
+
+  conteudoEsquerda.addEventListener("mouseup", () => {
+    clearTimeout(tempoPressionado);
+    tempoPressionado = null;
+  });
+
+  conteudoEsquerda.addEventListener("mouseleave", () => {
+    clearTimeout(tempoPressionado);
+    tempoPressionado = null;
+  });
+
+  conteudoEsquerda.addEventListener("touchstart", () => {
+    tempoPressionado = setTimeout(() => {
+      abrirModalEditarProjeto(nome);
+      tempoPressionado = null;
+    }, 300);
+  });
+
+  conteudoEsquerda.addEventListener("touchend", () => {
+    clearTimeout(tempoPressionado);
+    tempoPressionado = null;
+  });
+
+  conteudoEsquerda.addEventListener("click", () => {
+    if (!tempoPressionado) {
+      localStorage.setItem("projetoSelecionado", nome);
+      window.location.href = "Cenas.html";
+    }
+  });
 
   const botaoExcluir = document.createElement("button");
   botaoExcluir.textContent = "×";
@@ -158,6 +264,13 @@ function carregarProjetosSalvos() {
 document.getElementById("inputNomeProjeto").addEventListener("input", () => {
   const input = document.getElementById("inputNomeProjeto");
   const erro = document.getElementById("mensagemErro");
+  input.classList.remove("erro");
+  erro.style.display = "none";
+});
+
+document.getElementById("inputEditarNomeProjeto").addEventListener("input", () => {
+  const input = document.getElementById("inputEditarNomeProjeto");
+  const erro = document.getElementById("mensagemErroEditar");
   input.classList.remove("erro");
   erro.style.display = "none";
 });

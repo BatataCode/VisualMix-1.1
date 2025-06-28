@@ -19,9 +19,9 @@ function esperarRotacaoEstabilizar(tentativas = 10, delay = 50) {
         contador >= tentativas
       ) {
         setTimeout(() => {
-          ajustarTamanhoCanvas(); // já faz o ajuste certo
+          ajustarTamanhoCanvas();
           resolve();
-        }, 200); // Espera 200ms após estabilizar
+        }, 200);
       } else {
         setTimeout(checar, delay);
       }
@@ -34,22 +34,32 @@ function esperarRotacaoEstabilizar(tentativas = 10, delay = 50) {
 const canvas = document.getElementById("tela");
 const ctx = canvas.getContext("2d");
 
+const canvasCarimbos = document.createElement("canvas");
+const ctxCarimbos = canvasCarimbos.getContext("2d");
+
 let larguraVisual = window.innerWidth;
 let alturaVisual = window.innerHeight;
 let dpr = window.devicePixelRatio || 1;
 
+let cameraOffsetX = 0;
+let cameraOffsetY = 0;
+
 function ajustarTamanhoCanvas() {
-  // Salva o centro visual do mundo ANTES de mudar o tamanho
   const centroVisualX = cameraOffsetX + larguraVisual / 2;
   const centroVisualY = cameraOffsetY + alturaVisual / 2;
 
-  // Atualiza tamanho
   dpr = window.devicePixelRatio || 1;
   larguraVisual = window.innerWidth;
   alturaVisual = window.innerHeight;
 
-  canvas.width = larguraVisual * dpr;
-  canvas.height = alturaVisual * dpr;
+  const larguraPx = larguraVisual * dpr;
+  const alturaPx = alturaVisual * dpr;
+
+  canvas.width = larguraPx;
+  canvas.height = alturaPx;
+
+  canvasCarimbos.width = larguraPx;
+  canvasCarimbos.height = alturaPx;
 
   canvas.style.width = larguraVisual + "px";
   canvas.style.height = alturaVisual + "px";
@@ -57,43 +67,42 @@ function ajustarTamanhoCanvas() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
 
-  // Reposiciona a câmera para manter o centro visual fixo
+  ctxCarimbos.setTransform(1, 0, 0, 1, 0, 0); // reset no contexto dos carimbos
+  ctxCarimbos.scale(dpr, dpr);
+
   cameraOffsetX = centroVisualX - larguraVisual / 2;
   cameraOffsetY = centroVisualY - alturaVisual / 2;
 }
 
-const  caixasCanvas = [];
+const caixasCanvas = [];
+const caixasMap = new Map();
 const textosCanvas = [];
+const textosMap = new Map();
 const eventosToqueCanvas = [];
 let cameraAlvoId = null;
-let cameraOffsetX = 0;
-let cameraOffsetY = 0;
 let suavidadeCamera = 0.05;
 let mudouCena = false;
+const eventosCloneCanvas = [];
+const contadorClones = {};
+const poolClones = {};
 
 window.toqueX_global = 0;
 window.toqueY_global = 0;
 
 function atualizarToqueTouchCanvas(e) {
-  const canvasRect = canvas.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
 
-  let toque;
-  if (e.touches && e.touches.length > 0) {
-    toque = e.touches[0];
-  } else if (e.changedTouches && e.changedTouches.length > 0) {
-    toque = e.changedTouches[0];
-  } else {
-    return;
-  }
+  const toque = (e.touches?.[0]) || (e.changedTouches?.[0]);
+  if (!toque) return;
 
-  const x = toque.clientX - canvasRect.left;
-  const y = toque.clientY - canvasRect.top;
+  const x = toque.clientX - rect.left;
+  const y = toque.clientY - rect.top;
 
-  const larguraCanvas = canvas.width / (window.devicePixelRatio || 1);
-  const alturaCanvas = canvas.height / (window.devicePixelRatio || 1);
+  const largura = canvas.width / (window.devicePixelRatio || 1);
+  const altura = canvas.height / (window.devicePixelRatio || 1);
 
-  window.toqueX_global = x - larguraCanvas / 2;
-  window.toqueY_global = -(y - alturaCanvas / 2);
+  window.toqueX_global = x - largura / 2;
+  window.toqueY_global = -(y - altura / 2);
 }
 
 function substituirVariaveis(texto, variaveis) {
@@ -123,7 +132,7 @@ function substituirVariaveis(texto, variaveis) {
     toqueY: window.toqueY_global || 0,
 
     posX: (id) => {
-      const caixa = caixasCanvas.find(c => c.id === id);
+      const caixa = caixasMap.get(id);
       if (!caixa) return 0;
       const centroX = caixa.x + caixa.largura / 2;
       const canvasCentroX = larguraVisual / 2;
@@ -131,11 +140,29 @@ function substituirVariaveis(texto, variaveis) {
     },
 
     posY: (id) => {
-      const caixa = caixasCanvas.find(c => c.id === id);
+      const caixa = caixasMap.get(id);
       if (!caixa) return 0;
       const centroY = caixa.y + caixa.altura / 2;
       const canvasCentroY = alturaVisual / 2;
       return Math.round(canvasCentroY - centroY);
+    },
+
+    apontarPara: (idOrigem, idAlvo) => {  
+      const a = caixasMap.get(idOrigem);  
+      const b = caixasMap.get(idAlvo);  
+      if (!a || !b) return 0;  
+  
+      const ax = a.x + a.largura / 2;  
+      const ay = a.y + a.altura / 2;  
+      const bx = b.x + b.largura / 2;  
+      const by = b.y + b.altura / 2;  
+  
+      return Math.atan2(by - ay, bx - ax) * 180 / Math.PI;  
+    },  
+
+    direcao: (id) => {
+      const caixa = caixasMap.get(id);
+      return caixa?.direcao || 0;
     },
 
     aleatorio: (min, max) => {
@@ -148,31 +175,30 @@ function substituirVariaveis(texto, variaveis) {
     variaveis
   };
 
-  texto = texto.replace(/\$\{([^\}]+)\}/g, (_, exprOriginal) => {
+  function avaliarExpressao(expr) {
     try {
-      const expr = transformarExpressao(substituirSimples(exprOriginal));
       return Function("with(this) { return " + expr + "}").call(contexto);
     } catch {
-      return '${' + exprOriginal + '}';
+      return null;
     }
+  }
+
+  texto = texto.replace(/\$\{([^\}]+)\}/g, (_, exprOriginal) => {
+    const expr = transformarExpressao(substituirSimples(exprOriginal));
+    const resultado = avaliarExpressao(expr);
+    return resultado != null ? resultado : '${' + exprOriginal + '}';
   });
 
   texto = texto.replace(/\$([a-zA-Z_]\w*)([^\s]*)/g, (_, nome, resto) => {
     if (!(nome in variaveis)) return `$${nome}${resto}`;
-    try {
-      const expr = transformarExpressao(`(${JSON.stringify(variaveis[nome])})${resto}`);
-      return Function("with(this) { return " + expr + "}").call(contexto);
-    } catch {
-      return `$${nome}${resto}`;
-    }
+    const expr = transformarExpressao(`(${JSON.stringify(variaveis[nome])})${resto}`);
+    const resultado = avaliarExpressao(expr);
+    return resultado != null ? resultado : `$${nome}${resto}`;
   });
 
   if (/^[0-9+\-*/().\s]+$/.test(texto.trim())) {
-    try {
-      return Function("with(this) { return " + texto + "}").call(contexto);
-    } catch {
-      return texto;
-    }
+    const resultado = avaliarExpressao(texto);
+    if (resultado != null) return resultado;
   }
 
   return texto;
@@ -191,8 +217,8 @@ function colisao(id1, id2) {
     return id2.some(b => colisao(id1, b));
   }
 
-  const c1 = caixasCanvas.find(c => c.id === id1);
-  const c2 = caixasCanvas.find(c => c.id === id2);
+  const c1 = caixasMap.get(id1);
+  const c2 = caixasMap.get(id2);
 
   if (!c1 || !c2) return false;
 
@@ -206,70 +232,73 @@ function colisao(id1, id2) {
 
 async function executarBlocos(blocos, variaveis = {}, toquesAtivos = []) {
 
-  canvas.addEventListener("touchstart", (e) => {
-    for (const toque of e.changedTouches) {
-      const id = toque.identifier;
-      const rect = canvas.getBoundingClientRect();
-      const x = toque.clientX - rect.left;
-      const y = toque.clientY - rect.top;
+canvas.addEventListener("touchstart", (e) => {
+  for (const toque of e.changedTouches) {
+    const id = toque.identifier;
+    const rect = canvas.getBoundingClientRect();
+    const x = toque.clientX - rect.left;
+    const y = toque.clientY - rect.top;
 
-      toquesAtivos.push({ id, x, y });
-
-      eventosToqueCanvas.forEach(evento => {
-        const caixa = caixasCanvas.find(c => c.id === evento.id);
-        const chave = `toque_${evento.id}`;
-
-        if (caixa && pontoDentroDaCaixa(x, y, caixa)) {
-          variaveis[chave] = true;
-          executarBlocosInternos([...evento.filhos], variaveis);
-        }
-      });
-    }
-  });
-
-  canvas.addEventListener("touchmove", (e) => {
-    for (const toque of e.changedTouches) {
-      const id = toque.identifier;
-      const rect = canvas.getBoundingClientRect();
-      const x = toque.clientX - rect.left;
-      const y = toque.clientY - rect.top;
-
-      const i = toquesAtivos.findIndex(t => t.id === id);
-      if (i !== -1) toquesAtivos[i] = { id, x, y };
-
-      eventosToqueCanvas.forEach(evento => {
-        const caixa = caixasCanvas.find(c => c.id === evento.id);
-        const chave = `toque_${evento.id}`;
-        if (!caixa) return;
-
-        variaveis[chave] = toquesAtivos.some(t => pontoDentroDaCaixa(t.x, t.y, caixa));
-      });
-    }
-  });
-
-  canvas.addEventListener("touchend", (e) => {
-    for (const toque of e.changedTouches) {
-      const id = toque.identifier;
-      const i = toquesAtivos.findIndex(t => t.id === id);
-      if (i !== -1) toquesAtivos.splice(i, 1);
-    }
+    toquesAtivos.push({ id, x, y });
 
     eventosToqueCanvas.forEach(evento => {
-      const chave = `toque_${evento.id}`;
-      variaveis[chave] = toquesAtivos.some(t => {
-        const caixa = caixasCanvas.find(c => c.id === evento.id);
-        return caixa && pontoDentroDaCaixa(t.x, t.y, caixa);
-      });
-    });
-  });
+      const caixa = caixasMap.get(evento.id);
+      const chave = `tocando_${evento.id}`;
 
-  canvas.addEventListener("touchcancel", (e) => {
-    for (const toque of e.changedTouches) {
-      const id = toque.identifier;
-      const i = toquesAtivos.findIndex(t => t.id === id);
-      if (i !== -1) toquesAtivos.splice(i, 1);
-    }
+      if (evento.id && caixa && pontoDentroDaCaixa(x, y, caixa)) {
+        variaveis[chave] = true;
+        executarBlocosInternos([...evento.filhos], variaveis);
+      }
+
+      if (!evento.id && evento.qualquerLugar) {
+        executarBlocosInternos([...evento.filhos], variaveis);
+      }
+    });
+  }
+});
+
+canvas.addEventListener("touchmove", (e) => {
+  for (const toque of e.changedTouches) {
+    const id = toque.identifier;
+    const rect = canvas.getBoundingClientRect();
+    const x = toque.clientX - rect.left;
+    const y = toque.clientY - rect.top;
+
+    const i = toquesAtivos.findIndex(t => t.id === id);
+    if (i !== -1) toquesAtivos[i] = { id, x, y };
+
+    eventosToqueCanvas.forEach(evento => {
+      const caixa = caixasMap.get(evento.id);
+      const chave = `tocando_${evento.id}`;
+      if (!caixa) return;
+
+      variaveis[chave] = toquesAtivos.some(t => pontoDentroDaCaixa(t.x, t.y, caixa));
+    });
+  }
+});
+
+canvas.addEventListener("touchend", (e) => {
+  for (const toque of e.changedTouches) {
+    const id = toque.identifier;
+    const i = toquesAtivos.findIndex(t => t.id === id);
+    if (i !== -1) toquesAtivos.splice(i, 1);
+  }
+
+  eventosToqueCanvas.forEach(evento => {
+    const chave = `tocando_${evento.id}`;
+    const caixa = caixasMap.get(evento.id);
+
+    variaveis[chave] = !!(caixa && toquesAtivos.some(t => pontoDentroDaCaixa(t.x, t.y, caixa)));
   });
+});
+
+canvas.addEventListener("touchcancel", (e) => {
+  for (const toque of e.changedTouches) {
+    const id = toque.identifier;
+    const i = toquesAtivos.findIndex(t => t.id === id);
+    if (i !== -1) toquesAtivos.splice(i, 1);
+  }
+});
 
   let i = 0;
   while (i < blocos.length && !mudouCena) {
@@ -300,36 +329,85 @@ async function executarBlocos(blocos, variaveis = {}, toquesAtivos = []) {
       continue;
 
     } else if (bloco.tipo === 'toque') {
-      const id = substituirVariaveis(bloco.idElemento, variaveis);
-      const filhos = [];
-      let profundidade = 1;
-      i++;
+  const id = substituirVariaveis(bloco.idElemento, variaveis);
+  const filhos = [];
+  let profundidade = 1;
+  i++;
 
-      while (i < blocos.length) {
-        const proximo = blocos[i];
-        if (proximo.tipo === 'toque') profundidade++;
-        if (proximo.tipo === 'fimToque') {
-          profundidade--;
-          if (profundidade === 0) break;
-        }
-        filhos.push(proximo);
-        i++;
-      }
-
-      const caixa = caixasCanvas.find(c => c.id === id);
-      if (caixa) {
-        variaveis[`toque_${id}`] = false;
-
-        eventosToqueCanvas.push({
-          id,
-          filhos
-        });
-      }
-
-      i++;
-      continue;
+  while (i < blocos.length) {
+    const proximo = blocos[i];
+    if (proximo.tipo === 'toque') profundidade++;
+    if (proximo.tipo === 'fimToque') {
+      profundidade--;
+      if (profundidade === 0) break;
     }
+    filhos.push(proximo);
+    i++;
+  }
 
+  const caixa = caixasMap.get(id);
+  if (caixa) {
+    variaveis[`tocando_${id}`] = false;
+
+    eventosToqueCanvas.push({
+      id,
+      filhos
+    });
+  }
+
+  i++;
+  continue;
+} else if (bloco.tipo === 'toqueNaTela') {
+  const filhos = [];
+  let profundidade = 1;
+  i++;
+
+  while (i < blocos.length) {
+    const proximo = blocos[i];
+    if (proximo.tipo === 'toqueNaTela') profundidade++;
+    if (proximo.tipo === 'fimToqueNaTela') {
+      profundidade--;
+      if (profundidade === 0) break;
+    }
+    filhos.push(proximo);
+    i++;
+  }
+
+  eventosToqueCanvas.push({
+    id: null,
+    filhos,
+    qualquerLugar: true
+  });
+
+  i++;
+  continue;
+} else if (bloco.tipo === 'aoCriarClone') {
+  const filhos = [];
+  let profundidade = 1;
+  i++;
+
+  while (i < blocos.length) {
+    const proximo = blocos[i];
+    if (proximo.tipo === 'aoCriarClone') profundidade++;
+    if (proximo.tipo === 'fimAoCriarClone') {
+      profundidade--;
+      if (profundidade === 0) break;
+    }
+    filhos.push(proximo);
+    i++;
+  }
+
+  const idOrigem = substituirVariaveis(bloco.idElemento, variaveis);
+  if (idOrigem) {
+    eventosCloneCanvas.push({
+      idOrigem,
+      filhos
+    });
+  }
+
+  i++;
+  continue;
+}
     i++;
   }
 }
@@ -364,26 +442,28 @@ async function executarBlocosInternos(blocos, variaveis = {}) {
   const x = (larguraVisual - larguraCaixa) / 2;
   const y = (alturaVisual - alturaCaixa) / 2;
 
-if (!caixasCanvas.some(c => c.id === id)) {
-  caixasCanvas.push({
-    id,
-    cor: cor || 'gray',
-    x,
-    y,
-    largura: larguraCaixa,
-    altura: alturaCaixa,
-    raio: 0,
-    camada: 0,
-    visivel: true,
-    fixo: false,
-    opacidade: 1
-    });
+  if (!caixasMap.has(id)) {
+    const novaCaixa = {
+      id,
+      cor: cor || 'gray',
+      x,
+      y,
+      largura: larguraCaixa,
+      altura: alturaCaixa,
+      raio: 0,
+      camada: 0,
+      visivel: true,
+      fixo: false,
+      opacidade: 1
+    };
+    caixasCanvas.push(novaCaixa);
+    caixasMap.set(id, novaCaixa);
   }
 } else if (bloco.tipo === 'cor') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const novaCor = substituirVariaveis(bloco.valor, variaveis);
 
-  const caixa = caixasCanvas.find(c => c.id === id);
+  const caixa = caixasMap.get(id);
   if (caixa) {
     caixa.cor = novaCor;
   }
@@ -391,7 +471,7 @@ if (!caixasCanvas.some(c => c.id === id)) {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const novoRaio = parseInt(substituirVariaveis(bloco.valor, variaveis)) || 0;
 
-  const caixa = caixasCanvas.find(c => c.id === id);
+  const caixa = caixasMap.get(id); // ⬅️ acesso direto com Map
   if (caixa) {
     caixa.raio = novoRaio;
   }
@@ -399,17 +479,22 @@ if (!caixasCanvas.some(c => c.id === id)) {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const valor = parseFloat(substituirVariaveis(bloco.valor, variaveis));
 
-  const caixa = caixasCanvas.find(c => c.id === id);
+  const caixa = caixasMap.get(id);
   if (caixa && !isNaN(valor)) {
     caixa.opacidade = Math.max(0, Math.min(1, valor / 100));
   }
 } else if (bloco.tipo === 'esperar') {
   const tempo = substituirVariaveis(bloco.valor, variaveis);
   const segundos = parseFloat(tempo);
-  if (!isNaN(segundos)) {
-    await new Promise(resolve => setTimeout(resolve, segundos * 1000));
-  }
 
+  if (!isNaN(segundos)) {
+    const inicio = performance.now();
+    const fim = inicio + segundos * 1000;
+
+    while (performance.now() < fim) {
+      await new Promise(r => requestAnimationFrame(r));
+    }
+  }
 } else if (bloco.tipo === 'criarVariavel') {
   const nome = bloco.nomeVariavel;
   let valor = substituirVariaveis(bloco.valorVariavel, variaveis);
@@ -484,7 +569,6 @@ if (!caixasCanvas.some(c => c.id === id)) {
   const nome = substituirVariaveis(bloco.nomeLista, variaveis);
 
   if (!Array.isArray(variaveis[nome])) {
-    console.warn(`A lista '${nome}' não existe ou não é uma lista.`);
     return;
   }
 
@@ -500,8 +584,9 @@ if (!caixasCanvas.some(c => c.id === id)) {
   const x = larguraVisual / 2;
   const y = alturaVisual / 2;
 
-  if (!textosCanvas.some(t => t.id === id)) {
-    textosCanvas.push({
+  let texto = textosMap.get(id);
+  if (!texto) {
+    texto = {
       id,
       valor,
       x,
@@ -512,33 +597,36 @@ if (!caixasCanvas.some(c => c.id === id)) {
       camada: 0,
       visivel: true,
       fixo: false
-    });
+    };
+    textosCanvas.push(texto);
+    textosMap.set(id, texto);
   } else {
-    const texto = textosCanvas.find(t => t.id === id);
-    if (texto) texto.valor = valor;
+    texto.valor = valor;
   }
 } else if (bloco.tipo === 'fonteTexto') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const fonteNome = substituirVariaveis(bloco.valor, variaveis);
-  const texto = textosCanvas.find(t => t.id === id);
+  const texto = textosMap.get(id);
 
   if (texto && fonteNome) {
     const tamanhoAtual = texto.fonte.match(/\d+px/)?.[0] || '20px';
     texto.fonte = `${tamanhoAtual} ${fonteNome}`;
   }
+
 } else if (bloco.tipo === 'tamanhoFonte') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const tamanho = substituirVariaveis(bloco.valor, variaveis);
-  const texto = textosCanvas.find(t => t.id === id);
+  const texto = textosMap.get(id);
 
   if (texto && tamanho) {
     const fonteAtual = texto.fonte.split(' ').slice(1).join(' ') || 'sans-serif';
     texto.fonte = `${tamanho} ${fonteAtual}`;
   }
+
 } else if (bloco.tipo === 'corTexto') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const cor = substituirVariaveis(bloco.valor, variaveis);
-  const texto = textosCanvas.find(t => t.id === id);
+  const texto = textosMap.get(id);
 
   if (texto && cor) {
     texto.cor = cor;
@@ -547,12 +635,9 @@ if (!caixasCanvas.some(c => c.id === id)) {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const x = parseFloat(substituirVariaveis(bloco.posicaoX, variaveis));
   const y = parseFloat(substituirVariaveis(bloco.posicaoY, variaveis));
-  const caixa = caixasCanvas.find(c => c.id === id);
+  const caixa = caixasMap.get(id);
 
   if (caixa && !isNaN(x) && !isNaN(y)) {
-    const larguraVisual = canvas.width / (window.devicePixelRatio || 1);
-    const alturaVisual = canvas.height / (window.devicePixelRatio || 1);
-
     caixa.x = larguraVisual / 2 + x - caixa.largura / 2;
     caixa.y = alturaVisual / 2 - y - caixa.altura / 2;
   }
@@ -560,23 +645,19 @@ if (!caixasCanvas.some(c => c.id === id)) {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const x = parseFloat(substituirVariaveis(bloco.posicaoX, variaveis));
   const y = parseFloat(substituirVariaveis(bloco.posicaoY, variaveis));
-  const texto = textosCanvas.find(t => t.id === id);
+  const texto = textosMap.get(id);
 
   if (texto && !isNaN(x) && !isNaN(y)) {
-    const larguraVisual = canvas.width / (window.devicePixelRatio || 1);
-    const alturaVisual = canvas.height / (window.devicePixelRatio || 1);
-
     texto.x = larguraVisual / 2 + x;
     texto.y = alturaVisual / 2 - y;
   }
 } else if (bloco.tipo === 'textura') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const nomeImagem = substituirVariaveis(bloco.valor, variaveis);
-  const caixa = caixasCanvas.find(c => c.id === id);
+  const caixa = caixasMap.get(id);
 
   if (caixa && nomeImagem) {
-    const src = carregarImagemPorNome(nomeImagem); // <- agora sem passar o id
-
+    const src = carregarImagemPorNome(nomeImagem); // sem passar id
     if (src) {
       const img = new Image();
       img.src = src;
@@ -585,12 +666,13 @@ if (!caixasCanvas.some(c => c.id === id)) {
       };
     }
   }
+
 } else if (bloco.tipo === 'criarAnimacao') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
-  const nomes = substituirVariaveis(bloco.valorImagens, variaveis); // lista de nomes, separados por vírgula
+  const nomes = substituirVariaveis(bloco.valorImagens, variaveis); // nomes separados por vírgula
   const velocidade = parseInt(substituirVariaveis(bloco.valorVelocidade, variaveis));
+  const caixa = caixasMap.get(id);
 
-  const caixa = caixasCanvas.find(c => c.id === id);
   if (caixa) {
     const nomesArray = nomes.split(',').map(n => n.trim());
     const imagens = nomesArray.map(nome => {
@@ -602,55 +684,120 @@ if (!caixasCanvas.some(c => c.id === id)) {
 
     caixa.animacao = {
       frames: imagens,
-      velocidade,       // número de frames antes de trocar
+      velocidade,
       indice: 0,
       contador: 0
     };
   }
+
 } else if (bloco.tipo === 'pararAnimacao') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
-  const caixa = caixasCanvas.find(c => c.id === id);
-
+  const caixa = caixasMap.get(id);
   if (caixa?.animacao) {
-    caixa.animacao.pausado = true; // apenas pausa, não apaga
+    caixa.animacao.pausado = true;
   }
+
 } else if (bloco.tipo === 'continuarAnimacao') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
-  const caixa = caixasCanvas.find(c => c.id === id);
-
+  const caixa = caixasMap.get(id);
   if (caixa?.animacao) {
     caixa.animacao.pausado = false;
   }
+} else if (bloco.tipo === 'gravidade') {
+  const id = substituirVariaveis(bloco.idElemento, variaveis);
+  const aceleracaoOriginal = parseFloat(substituirVariaveis(bloco.valor, variaveis)) || 0;
+
+  const caixa = caixasMap.get(id);
+  if (caixa) {
+    if (typeof caixa.vy !== "number") caixa.vy = 0;
+    caixa.vy -= aceleracaoOriginal;
+  }
+} else if (bloco.tipo === 'pular') {
+  const id = substituirVariaveis(bloco.idElemento, variaveis);
+  const forcaOriginal = parseFloat(substituirVariaveis(bloco.valor, variaveis)) || 0;
+
+  const caixa = caixasMap.get(id);
+  if (caixa) {
+    if (typeof caixa.vy !== "number") caixa.vy = 0;
+    caixa.vy = -forcaOriginal;
+  }
+} else if (bloco.tipo === 'colisaoSolida') {
+  const id = substituirVariaveis(bloco.idElemento, variaveis);
+  const idAlvo = substituirVariaveis(bloco.idAlvo, variaveis);
+
+  const caixa = caixasMap.get(id);
+  const alvo = caixasMap.get(idAlvo);
+
+  if (!caixa || !alvo) return;
+
+  if (colisao(id, idAlvo)) {
+    const sobreX = Math.min(caixa.x + caixa.largura, alvo.x + alvo.largura) - Math.max(caixa.x, alvo.x);
+    const sobreY = Math.min(caixa.y + caixa.altura, alvo.y + alvo.altura) - Math.max(caixa.y, alvo.y);
+
+    if (sobreX < sobreY) {
+      if (caixa.x < alvo.x) {
+        caixa.x = alvo.x - caixa.largura;
+      } else {
+        caixa.x = alvo.x + alvo.largura;
+      }
+    } else {
+      if (caixa.y < alvo.y) {
+        caixa.y = alvo.y - caixa.altura;
+
+      } else {
+        caixa.y = alvo.y + alvo.altura;
+      }
+
+      if (typeof caixa.vy === "number") {
+        caixa.vy = 0;
+      }
+    }
+  }
 } else if (bloco.tipo === 'mover') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
-  const passos = parseFloat(substituirVariaveis(bloco.valor, variaveis)) || 0;
-  const direcao = parseFloat(variaveis[`direcao_${id}`]) || 90;
+  const valorBruto = substituirVariaveis(bloco.valor, variaveis);
+  const valor = parseFloat(valorBruto);
 
-  const rad = (Math.PI / 180) * direcao;
-  const dx = Math.sin(rad) * passos;
-  const dy = -Math.cos(rad) * passos;
+  if (!id || isNaN(valor) || valor === 0) return;
 
-  const caixa = caixasCanvas.find(c => c.id === id);
-  if (caixa) {
-    caixa.x += dx;
-    caixa.y += dy;
+  const caixa = caixasMap.get(id);
+  if (!caixa) return;
+
+  // Cache de seno/cosseno para direção, evita recalcular sempre
+  if (typeof caixa._cos === "undefined" || caixa._direcaoCache !== caixa.direcao) {
+    const anguloRad = (caixa.direcao ?? 0) * (Math.PI / 180);
+    caixa._cos = Math.cos(anguloRad);
+    caixa._sin = Math.sin(anguloRad);
+    caixa._direcaoCache = caixa.direcao;
   }
 
-  const texto = textosCanvas.find(t => t.id === id);
-  if (texto) {
-    texto.x += dx;
-    texto.y += dy;
-  }
+  caixa.x += caixa._cos * valor;
+  caixa.y += caixa._sin * valor;
 } else if (bloco.tipo === 'direcao') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
-  const valor = parseFloat(substituirVariaveis(bloco.valor, variaveis)) || 90;
+  const valor = parseFloat(substituirVariaveis(bloco.valor, variaveis)) || 0;
+
+  const caixa = caixasMap.get(id);
+  const texto = textosMap.get(id);
+
+  if (caixa) {
+    caixa.direcao = valor;
+
+    // ❌ Limpa cache de seno/cosseno da direção
+    delete caixa._cos;
+    delete caixa._sin;
+    delete caixa._direcaoCache;
+  }
+
+  if (texto) texto.direcao = valor;
+
   variaveis[`direcao_${id}`] = valor;
 } else if (bloco.tipo === 'tamanho') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const novaLargura = parseInt(substituirVariaveis(bloco.larguraElemento, variaveis));
   const novaAltura = parseInt(substituirVariaveis(bloco.alturaElemento, variaveis));
 
-  const caixa = caixasCanvas.find(c => c.id === id);
+  const caixa = caixasMap.get(id);
   if (caixa) {
     const centroX = caixa.x + caixa.largura / 2;
     const centroY = caixa.y + caixa.altura / 2;
@@ -665,60 +812,74 @@ if (!caixasCanvas.some(c => c.id === id)) {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
   const z = parseInt(substituirVariaveis(bloco.valor, variaveis));
 
-  const caixa = caixasCanvas.find(c => c.id === id);
+  const caixa = caixasMap.get(id);
   if (caixa && !isNaN(z)) {
     caixa.camada = z;
   }
+
 } else if (bloco.tipo === 'mostrar') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
-  const caixa = caixasCanvas.find(c => c.id === id);
-  const texto = textosCanvas.find(t => t.id === id);
+  const caixa = caixasMap.get(id);
+  const texto = textosMap.get(id);
 
   if (caixa) caixa.visivel = true;
   if (texto) texto.visivel = true;
-}
 
-else if (bloco.tipo === 'esconder') {
+} else if (bloco.tipo === 'esconder') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
-  const caixa = caixasCanvas.find(c => c.id === id);
-  const texto = textosCanvas.find(t => t.id === id);
+  const caixa = caixasMap.get(id);
+  const texto = textosMap.get(id);
 
   if (caixa) caixa.visivel = false;
   if (texto) texto.visivel = false;
 } else if (bloco.tipo === 'remover') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
+  const caixa = caixasMap.get(id);
 
-  const iCaixa = caixasCanvas.findIndex(c => c.id === id);
-  if (iCaixa !== -1) caixasCanvas.splice(iCaixa, 1);
+  if (caixa) {
+    const index = caixasCanvas.indexOf(caixa);
+    if (index !== -1) caixasCanvas.splice(index, 1);
 
-  const iTexto = textosCanvas.findIndex(t => t.id === id);
-  if (iTexto !== -1) textosCanvas.splice(iTexto, 1);
+    if (caixa.usando) {
+      caixa.usando = false;
+      caixa.visivel = false;
+    }
+
+    caixasMap.delete(id);
+  }
+
+  const texto = textosMap.get(id);
+  if (texto) {
+    const index = textosCanvas.indexOf(texto);
+    if (index !== -1) textosCanvas.splice(index, 1);
+    textosMap.delete(id);
+  }
 } else if (bloco.tipo === 'camera') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
-  if (caixasCanvas.some(c => c.id === id)) {
+  if (caixasMap.has(id)) {
     cameraAlvoId = id;
   }
+
 } else if (bloco.tipo === 'fixarCaixa') {
   const id = substituirVariaveis(bloco.idElemento, variaveis);
-  const caixa = caixasCanvas.find(c => c.id === id);
-  const texto = textosCanvas.find(t => t.id === id);
-  
+  const caixa = caixasMap.get(id);
+  const texto = textosMap.get(id);
+
   if (caixa) caixa.fixo = true;
   if (texto) texto.fixo = true;
 
 } else if (bloco.tipo === 'suavidadeCamera') {
   const valor = parseFloat(substituirVariaveis(bloco.valor, variaveis));
-
   if (!isNaN(valor) && valor >= 0 && valor <= 1) {
     suavidadeCamera = valor;
   }
 } else if (bloco.tipo === 'mudarCena') {
   const novaCena = substituirVariaveis(bloco.idElemento, variaveis);
   const projeto = localStorage.getItem("projetoSelecionado");
+  if (!projeto || !novaCena) return;
 
-  const blocosPorCena = JSON.parse(localStorage.getItem("blocosPorCena")) || {};
+  const blocosPorCena = JSON.parse(localStorage.getItem("blocosPorCena") || "{}");
   const dadosDaCena = blocosPorCena[projeto]?.[novaCena];
-
   if (!dadosDaCena) return;
 
   mudouCena = true;
@@ -732,25 +893,177 @@ else if (bloco.tipo === 'esconder') {
   const fade = document.getElementById("fadePreto");
   if (fade) {
     fade.style.pointerEvents = "auto";
-    fade.style.opacity = "1"; // faz escurecer
+    fade.style.opacity = "1";
 
     setTimeout(() => {
       location.replace("ExecutandoJogo.html");
-    }, 500); // espera o fade-out terminar
+    }, 500);
   } else {
     location.replace("ExecutandoJogo.html");
   }
+
   return;
 } else if (bloco.tipo === 'orientacao') {
   const modo = substituirVariaveis(bloco.valor, variaveis).toLowerCase();
-  if (modo === 'paisagem' || modo === 'retrato') {
-    if (window.AndroidInterface && typeof AndroidInterface.changeOrientation === 'function') {
-      if(modo === 'paisagem') {
-     AndroidInterface.changeOrientation('landscape');
-      } else {
-     AndroidInterface.changeOrientation('portrait');
+  if ((modo === 'paisagem' || modo === 'retrato') &&
+      window.AndroidInterface?.changeOrientation instanceof Function) {
+    const orientacao = modo === 'paisagem' ? 'landscape' : 'portrait';
+    AndroidInterface.changeOrientation(orientacao);
+  }
+} else if (bloco.tipo === 'clonar') {
+  const idOriginal = substituirVariaveis(bloco.idElemento, variaveis);
+  const base = idOriginal + '_clone';
+
+  if (!contadorClones[base]) contadorClones[base] = 1;
+
+  const novoId = `${base}_${contadorClones[base]++}`;
+  const original = caixasMap.get(idOriginal);
+
+  if (original) {
+    let clone = obterCloneDisponivel(base);
+
+    if (!clone) {
+      if (!poolClones[base]) poolClones[base] = [];
+
+      clone = {
+        id: novoId,
+        cor: original.cor,
+        x: original.x,
+        y: original.y,
+        largura: original.largura,
+        altura: original.altura,
+        raio: original.raio,
+        camada: original.camada,
+        visivel: true,
+        fixo: original.fixo,
+        opacidade: original.opacidade,
+        direcao: original.direcao,
+        vx: original.vx ?? 0,
+        vy: original.vy ?? 0,
+        textura: original.textura ?? null,
+        animacao: original.animacao ? {
+          frames: original.animacao.frames,
+          velocidade: original.animacao.velocidade,
+          indice: 0,
+          contador: 0,
+          pausado: original.animacao.pausado ?? false
+        } : undefined,
+        usando: true
+      };
+
+      poolClones[base].push(clone);
+    } else {
+      clone.id = novoId;
+      clone.x = original.x;
+      clone.y = original.y;
+      clone.vx = original.vx ?? 0;
+      clone.vy = original.vy ?? 0;
+      clone.direcao = original.direcao;
+      clone.visivel = true;
+      clone.opacidade = original.opacidade;
+      clone.fixo = original.fixo;
+      clone.cor = original.cor;
+      clone.largura = original.largura;
+      clone.altura = original.altura;
+      clone.raio = original.raio;
+      clone.camada = original.camada;
+      clone.textura = original.textura ?? null;
+      clone.animacao = original.animacao ? {
+        frames: original.animacao.frames,
+        velocidade: original.animacao.velocidade,
+        indice: 0,
+        contador: 0,
+        pausado: original.animacao.pausado ?? false
+      } : undefined;
+      clone.usando = true;
+    }
+
+    if (!caixasCanvas.includes(clone)) {
+      caixasCanvas.push(clone);
+    }
+
+    caixasMap.set(novoId, clone);
+
+    for (const evento of eventosCloneCanvas) {
+      if (!evento.idOrigem || evento.idOrigem === idOriginal) {
+        const variaveisClone = { ...variaveis, ultimoClone: novoId };
+        executarBlocosInternos([...evento.filhos], variaveisClone);
       }
     }
+  }
+} else if (bloco.tipo === 'carimbo') {
+  const id = substituirVariaveis(bloco.idElemento, variaveis);
+  const caixa = caixasMap.get(id);
+  if (!caixa) return;
+
+  ctxCarimbos.setTransform(1, 0, 0, 1, 0, 0);
+
+  const x = caixa.fixo ? caixa.x : caixa.x - cameraOffsetX;
+  const y = caixa.fixo ? caixa.y : caixa.y - cameraOffsetY;
+
+  ctxCarimbos.save();
+  ctxCarimbos.globalAlpha = Math.max(0, Math.min(1, caixa.opacidade ?? 1));
+
+  const cx = x + caixa.largura / 2;
+  const cy = y + caixa.altura / 2;
+  ctxCarimbos.translate(cx, cy);
+
+  const angulo = (caixa.direcao || 0) * Math.PI / 180;
+  ctxCarimbos.rotate(angulo);
+
+  const dx = -caixa.largura / 2;
+  const dy = -caixa.altura / 2;
+
+  if (caixa.textura instanceof Image) {
+    ctxCarimbos.drawImage(caixa.textura, dx, dy, caixa.largura, caixa.altura);
+  } else {
+    desenharCaixaArredondada(
+      ctxCarimbos,
+      dx,
+      dy,
+      caixa.largura,
+      caixa.altura,
+      caixa.raio || 0,
+      caixa.cor || 'gray'
+    );
+  }
+
+  ctxCarimbos.restore();
+} else if (bloco.tipo === 'limparCarimbos') {
+  ctxCarimbos.clearRect(0, 0, canvasCarimbos.width, canvasCarimbos.height);
+} else if (bloco.tipo === 'efeito') {
+  const id = substituirVariaveis(bloco.idElemento, variaveis);
+  const efeito = substituirVariaveis(bloco.valor, variaveis)?.toLowerCase();
+  const caixa = caixasMap.get(id);
+  if (!caixa || !efeito) return;
+
+  const valor = 10;
+
+  if (efeito === "fantasma") {
+    const opacidadeAtual = typeof caixa.opacidade === "number" ? caixa.opacidade : 1;
+    let fantasmaAtual = 100 - (opacidadeAtual * 100);
+    fantasmaAtual = Math.min(100, Math.max(0, fantasmaAtual + valor));
+    caixa.opacidade = Math.max(0, 1 - (fantasmaAtual / 100));
+  } else {
+    if (!caixa.filtrosExtras) caixa.filtrosExtras = {};
+    const atual = parseFloat(caixa.filtrosExtras[efeito]) || 0;
+    caixa.filtrosExtras[efeito] = atual + valor;
+
+    const filtros = Object.entries(caixa.filtrosExtras).map(([nome, v]) => {
+      switch (nome) {
+        case "blur":
+          return `blur(${v}px)`;
+        case "brightness":
+          return `brightness(${v})`;
+        case "saturate":
+        case "saturation":
+          return `saturate(${v})`;
+        default:
+          return "";
+      }
+    });
+
+    caixa.filtro = filtros.join(" ");
   }
 } else if (bloco.tipo === 'repetirAte') {
   const filhos = [];
@@ -855,7 +1168,7 @@ window.onload = async () => {
 
   // Eventos de toque (já ajustados ao canvas novo)
   canvas.addEventListener("touchstart", atualizarToqueTouchCanvas);
-  canvas.addEventListener("touchmove", atualizarToqueTouchCanvas);
+  canvas.addEventListener("touchmove", atualizarToqueTouchCanvas);  
 
   // Fade de entrada
   const fade = document.getElementById("fadePreto");
@@ -889,22 +1202,41 @@ function desenharCaixasCanvas(ctx, offsetX = 0, offsetY = 0) {
     .slice()
     .sort((a, b) => (a.camada || 0) - (b.camada || 0))
     .forEach(caixa => {
-      if (caixa.visivel === false) return;
+      if (!caixa?.visivel) return;
 
       const x = caixa.fixo ? caixa.x : caixa.x - offsetX;
       const y = caixa.fixo ? caixa.y : caixa.y - offsetY;
-      const alpha = caixa.opacidade ?? 1; // valor de 0 a 1
 
-      ctx.save(); // 🔒 salva o estado original do canvas
-      ctx.globalAlpha = alpha; // 💡 aplica a opacidade
+      // 🧠 Pula se estiver fora da tela
+      if (
+        x + caixa.largura < 0 || x > larguraVisual ||
+        y + caixa.altura < 0 || y > alturaVisual
+      ) {
+        return;
+      }
 
-      // 🎞️ Animação por imagem (sequência de frames)
-      if (caixa.animacao && Array.isArray(caixa.animacao.frames)) {
+      const alpha = Math.max(0, Math.min(1, caixa.opacidade ?? 1));
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.filter = caixa.filtro || "none";
+
+      const cx = x + caixa.largura / 2;
+      const cy = y + caixa.altura / 2;
+      ctx.translate(cx, cy);
+
+      const angulo = (caixa.direcao || 0) * Math.PI / 180;
+      ctx.rotate(angulo);
+
+      const dx = -caixa.largura / 2;
+      const dy = -caixa.altura / 2;
+
+      // 🎞️ Animação com frames
+      if (caixa.animacao?.frames?.length) {
         const anim = caixa.animacao;
 
         if (!anim.pausado) {
           anim.contador = (anim.contador || 0) + 1;
-
           if (anim.contador >= anim.velocidade) {
             anim.contador = 0;
             anim.indice = (anim.indice + 1) % anim.frames.length;
@@ -912,22 +1244,21 @@ function desenharCaixasCanvas(ctx, offsetX = 0, offsetY = 0) {
         }
 
         const frameAtual = anim.frames[anim.indice];
-        if (frameAtual && frameAtual.complete) {
-          ctx.drawImage(frameAtual, x, y, caixa.largura, caixa.altura);
-          ctx.restore(); // 🔓 restaura para não afetar o próximo desenho
+        if (frameAtual?.complete) {
+          ctx.drawImage(frameAtual, dx, dy, caixa.largura, caixa.altura);
+          ctx.restore();
           return;
         }
       }
 
-      // 🖼️ Textura estática
+      // 🖼️ Textura estática ou caixa arredondada
       if (caixa.textura instanceof Image) {
-        ctx.drawImage(caixa.textura, x, y, caixa.largura, caixa.altura);
+        ctx.drawImage(caixa.textura, dx, dy, caixa.largura, caixa.altura);
       } else {
-        // 🎨 Caixa padrão com cor e raio
         desenharCaixaArredondada(
           ctx,
-          x,
-          y,
+          dx,
+          dy,
           caixa.largura,
           caixa.altura,
           caixa.raio || 0,
@@ -935,29 +1266,40 @@ function desenharCaixasCanvas(ctx, offsetX = 0, offsetY = 0) {
         );
       }
 
-      ctx.restore(); // 🔓 sempre restaurar ao final
+      ctx.restore();
+      ctx.filter = "none";
     });
 }
 
 function desenharTextosCanvas(ctx, offsetX = 0, offsetY = 0) {
   textosCanvas
-    .slice()
+    .filter(texto => texto.visivel !== false)
     .sort((a, b) => (a.camada || 0) - (b.camada || 0))
     .forEach(texto => {
-      if (texto.visivel === false) return;
+      const { fixo, x: tx, y: ty, cor, fonte, alinhamento, valor, direcao } = texto;
 
-      const x = texto.fixo ? texto.x : texto.x - offsetX;
-      const y = texto.fixo ? texto.y : texto.y - offsetY;
+      const x = fixo ? tx : tx - offsetX;
+      const y = fixo ? ty : ty - offsetY;
 
-      ctx.fillStyle = texto.cor;
-      ctx.font = texto.fonte;
-      ctx.textAlign = texto.alinhamento;
+      ctx.save();
+      ctx.translate(x, y);
+
+      const angulo = (direcao || 0) * Math.PI / 180;
+      ctx.rotate(angulo);
+
+      ctx.fillStyle = cor;
+      ctx.font = fonte;
+      ctx.textAlign = alinhamento;
       ctx.textBaseline = "middle";
-      ctx.fillText(texto.valor, x, y);
+      ctx.fillText(valor, 0, 0);
+
+      ctx.restore();
     });
 }
 
 function desenharCaixaArredondada(ctx, x, y, w, h, r, cor) {
+  r = Math.max(0, Math.min(r, Math.min(w / 2, h / 2)));
+
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
@@ -969,7 +1311,65 @@ function desenharCaixaArredondada(ctx, x, y, w, h, r, cor) {
   ctx.lineTo(x, y + r);
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
-  ctx.fillStyle = cor;
+
+  if (typeof cor === "string" && cor.includes(",")) {
+    let tipo = "horizontal";
+    let coresString = cor;
+
+    if (cor.includes(":")) {
+      const partes = cor.split(":");
+      tipo = partes[0].trim().toLowerCase();
+      coresString = partes.slice(1).join(":"); // permite cores com :
+    }
+
+    const cores = coresString.split(",").map(c => c.trim());
+
+    let grad;
+
+    if (tipo.startsWith("diagonal")) {
+      // Exemplo: diagonal45
+      // Pega o número depois de 'diagonal'
+      const anguloStr = tipo.slice(8);
+      const angulo = parseFloat(anguloStr) || 45; // padrão 45 graus
+
+      // Calcula ponto inicial e final do degradê baseado no ângulo
+      // Usa trigonometria para posição no retângulo (x,y,w,h)
+      const rad = (angulo * Math.PI) / 180;
+
+      const x1 = x + w / 2 - (Math.cos(rad) * w) / 2;
+      const y1 = y + h / 2 - (Math.sin(rad) * h) / 2;
+
+      const x2 = x + w / 2 + (Math.cos(rad) * w) / 2;
+      const y2 = y + h / 2 + (Math.sin(rad) * h) / 2;
+
+      grad = ctx.createLinearGradient(x1, y1, x2, y2);
+
+    } else if (tipo === "vertical") {
+      grad = ctx.createLinearGradient(x, y, x, y + h);
+
+    } else if (tipo === "radial") {
+      grad = ctx.createRadialGradient(
+        x + w / 2,
+        y + h / 2,
+        0,
+        x + w / 2,
+        y + h / 2,
+        Math.max(w, h) / 2
+      );
+
+    } else {
+      // horizontal padrão
+      grad = ctx.createLinearGradient(x, y, x + w, y);
+    }
+
+    const passo = 1 / (cores.length - 1);
+    cores.forEach((cor, i) => grad.addColorStop(i * passo, cor));
+
+    ctx.fillStyle = grad;
+  } else {
+    ctx.fillStyle = cor || "gray";
+  }
+
   ctx.fill();
 }
 
@@ -999,11 +1399,33 @@ function carregarImagemPorNome(nomeImagem) {
   }
 }
 
+let fps = 0;
+let frames = 0;
+let tempoUltimoFPS = performance.now();
+
+let ultimoFrame = performance.now();
+
 function loop() {
+  const agora = performance.now();
+  const delta = agora - ultimoFrame;
+  ultimoFrame = agora;
+
+  frames++;
+  if (agora - tempoUltimoFPS >= 1000) {
+    fps = frames;
+    frames = 0;
+    tempoUltimoFPS = agora;
+  }
+
+  // 🧼 Limpa o canvas principal
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // 🖌️ Desenha os carimbos fixos otimizados
+  ctx.drawImage(canvasCarimbos, 0, 0);
+
+  // 🎥 Atualiza a câmera, se tiver um alvo
   if (cameraAlvoId) {
-    const alvo = caixasCanvas.find(c => c.id === cameraAlvoId);
+    const alvo = caixasMap.get(cameraAlvoId);
     if (alvo) {
       const alvoX = alvo.x + alvo.largura / 2 - larguraVisual / 2;
       const alvoY = alvo.y + alvo.altura / 2 - alturaVisual / 2;
@@ -1012,11 +1434,61 @@ function loop() {
       cameraOffsetY += (alvoY - cameraOffsetY) * suavidadeCamera;
     }
   }
+     for (const caixa of caixasCanvas) {
+  if (typeof caixa.vx === "number") caixa.x += caixa.vx;
+  if (typeof caixa.vy === "number") caixa.y += caixa.vy;
+     }
 
+  // 🧱 Desenha as caixas e textos
   desenharCaixasCanvas(ctx, cameraOffsetX, cameraOffsetY);
   desenharTextosCanvas(ctx, cameraOffsetX, cameraOffsetY);
 
+  // ⏱️ Desenha o FPS com estilo bonito usando sua função personalizada
+ctx.save();
+
+ctx.globalAlpha = 0.6;
+
+const textoFPS = `FPS: ${fps}`;
+ctx.font = "18px 'Orbitron', sans-serif";
+const paddingHorizontal = 20;
+const paddingVertical = 12;
+
+const larguraTexto = ctx.measureText(textoFPS).width;
+const fpsBoxW = larguraTexto + paddingHorizontal;
+const fpsBoxH = 32;
+const fpsBoxX = 10;
+const fpsBoxY = 10;
+
+desenharCaixaArredondada(ctx, fpsBoxX, fpsBoxY, fpsBoxW, fpsBoxH, 10, "#000");
+
+ctx.globalAlpha = 1;
+ctx.fillStyle = "#00ff88";
+ctx.shadowColor = "#000";
+ctx.shadowBlur = 4;
+ctx.textAlign = "center";
+ctx.textBaseline = "middle";
+
+const centerX = fpsBoxX + fpsBoxW / 2;
+const centerY = fpsBoxY + fpsBoxH / 2;
+
+ctx.fillText(textoFPS, centerX, centerY);
+
+ctx.restore();
+
+  // 🔁 Próximo frame
   requestAnimationFrame(loop);
 }
 
 loop();
+
+function obterCloneDisponivel(base) {
+  if (!poolClones[base]) return null;
+
+  for (const clone of poolClones[base]) {
+    if (!clone.usando) {
+      return clone;
+    }
+  }
+
+  return null;
+}
